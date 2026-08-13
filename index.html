@@ -57,10 +57,10 @@
   /* ---------- shell ---------- */
   #app{min-height:100vh; display:flex; flex-direction:column;}
   .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 22px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    padding:14px 22px; border-bottom:1px solid var(--line);
     background:var(--paper-raise);
-    position:sticky; top:0; z-index:20;
+    position:sticky; top:0; z-index:20; gap:10px 16px;
   }
   .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
   .seal{
@@ -76,18 +76,77 @@
   .brand-text{display:flex; flex-direction:column; line-height:1.1;}
   .brand-name{font-family:var(--font-display); font-weight:700; font-size:19px; letter-spacing:.2px;}
   .brand-tag{font-size:11.5px; color:var(--ink-faint); letter-spacing:.3px;}
-  .topnav{display:flex; align-items:center; gap:18px; font-size:13.5px;}
-  .topnav button{
-    background:none;border:none;color:var(--ink-soft);cursor:pointer;padding:6px 2px;
-    border-bottom:2px solid transparent;
+  .info-btn{
+    flex:none; width:30px;height:30px;border-radius:50%;
+    border:1px solid var(--line); background:var(--paper-raise); color:var(--ink-soft);
+    cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
   }
-  .topnav button:hover{color:var(--ink)}
+  .info-btn:hover{border-color:var(--teal); color:var(--teal-dark);}
   .privacy-pill{
     display:flex; align-items:center; gap:6px;
     font-size:12px; color:var(--teal-dark); background:var(--teal-tint);
     border:1px solid #C7E1DC; padding:5px 10px; border-radius:999px;
     white-space:nowrap;
   }
+  .header-right{display:flex; align-items:center; gap:10px;}
+
+  /* ---------- mega tool menu ---------- */
+  .mega-nav{position:relative; display:flex; gap:4px; order:5; flex:1 1 auto; justify-content:center;}
+  .mega-btn{
+    background:none;border:none;cursor:pointer;
+    padding:8px 13px;border-radius:999px;
+    font-size:13px; font-weight:600; color:var(--ink-soft);
+    display:flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .mega-btn .caret{font-size:9px; transition:transform .15s ease; color:var(--ink-faint);}
+  .mega-btn:hover, .mega-btn.open{background:var(--teal-tint); color:var(--teal-dark);}
+  .mega-btn.open .caret{transform:rotate(180deg);}
+  .mega-panel{
+    position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%);
+    background:var(--paper-raise); border:1px solid var(--line);
+    border-radius:var(--radius-l); box-shadow:var(--shadow-pop);
+    padding:20px 22px; display:none;
+    gap:8px 26px; grid-template-columns:repeat(auto-fit, minmax(185px,1fr));
+    z-index:50; max-height:72vh; overflow:auto;
+    width:max(680px, 58vw); max-width:92vw;
+  }
+  .mega-panel.open{display:grid;}
+  .menu-col-title{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.7px;
+    color:var(--ink-faint); font-weight:700; margin:10px 0 8px;
+  }
+  .menu-col-title:first-child{margin-top:0;}
+  .menu-item{
+    display:flex; align-items:center; gap:9px; width:100%;
+    background:none; border:none; text-align:left; cursor:pointer;
+    padding:6px 6px; border-radius:var(--radius-s); font-size:12.8px; color:var(--ink);
+  }
+  .menu-item:hover{background:var(--paper);}
+  .menu-item.soon{color:var(--ink-faint);}
+  .menu-item-icon{
+    flex:none; width:25px;height:25px;border-radius:7px;
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+    color:#fff;
+  }
+  .menu-item-icon.cat-pdf{background:var(--teal);}
+  .menu-item-icon.cat-image{background:var(--amber);}
+  .menu-item-icon.cat-converter{background:#5B6B8C;}
+  .menu-item-label{flex:1; line-height:1.25;}
+  .soon-badge{
+    flex:none; font-size:9px; font-weight:700; letter-spacing:.3px;
+    color:var(--amber); background:var(--amber-tint);
+    padding:1.5px 6px; border-radius:999px;
+  }
+  .mega-overlay{position:fixed; inset:0; z-index:40; display:none; background:rgba(21,34,56,.06);}
+  .mega-overlay.open{display:block;}
+  .banner.info{background:var(--teal-tint); color:var(--teal-dark); border:1px solid #C7E1DC;}
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(14px);
+    background:var(--ink); color:#fff; padding:11px 20px; border-radius:999px;
+    font-size:13px; box-shadow:var(--shadow-pop); opacity:0; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease; z-index:80; max-width:92vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   main{flex:1; width:100%; max-width:1180px; margin:0 auto; padding:28px 20px 60px;}
 
@@ -304,6 +363,9 @@
     .topbar{padding:12px 14px;}
     .brand-tag{display:none;}
     .privacy-pill span.long{display:none;}
+    .mega-nav{order:5; width:100%; justify-content:space-between; gap:2px;}
+    .mega-btn{flex:1; justify-content:center; padding:8px 6px; font-size:11.5px;}
+    .mega-panel{padding:16px;}
     main{padding:20px 12px 46px;}
     .dropzone{padding:34px 16px;}
     .controls{position:static;}
@@ -322,17 +384,26 @@
         <span class="brand-tag">Merge PDFs &amp; images easily</span>
       </span>
     </a>
-    <nav class="topnav" aria-label="Info">
-      <button type="button" id="navPrivacy">Privacy</button>
-      <button type="button" id="navAbout">About</button>
+    <nav class="mega-nav" aria-label="Tools">
+      <button type="button" class="mega-btn" data-menu="pdf">PDF Tools <span class="caret">▾</span></button>
+      <button type="button" class="mega-btn" data-menu="image">Image Tools <span class="caret">▾</span></button>
+      <button type="button" class="mega-btn" data-menu="converter">Converter Tools <span class="caret">▾</span></button>
+      <div class="mega-panel" id="megaPanel-pdf"></div>
+      <div class="mega-panel" id="megaPanel-image"></div>
+      <div class="mega-panel" id="megaPanel-converter"></div>
     </nav>
-    <div class="privacy-pill">🔒 <span class="long">Files never leave your browser</span><span class="sr-only">Files are processed locally and are not uploaded to a server</span></div>
+    <div class="header-right">
+      <button type="button" class="info-btn" id="infoBtn" aria-label="About & privacy" title="About & privacy">ℹ</button>
+      <div class="privacy-pill">🔒 <span class="long">Files never leave your browser</span><span class="sr-only">Files are processed locally and are not uploaded to a server</span></div>
+    </div>
   </header>
+  <div class="mega-overlay" id="megaOverlay"></div>
 
   <input type="file" id="fileInput" class="sr-only" multiple accept=".pdf,.jpg,.jpeg,.png">
 
   <main>
 
+    <div class="banner info" id="toolHintBanner" role="status"></div>
     <div class="banner warn" id="engineBanner" role="alert">
       ⚠️ <span>PDF engine could not load — check your internet connection and reload the page. Merging needs the PDF library to load from the CDN once.</span>
     </div>
@@ -427,6 +498,7 @@
     <p style="margin:0 0 8px;">🔒 <span class="lock">Your files are processed locally in your browser</span> and are never uploaded to a server. Nothing is stored after you close this page.</p>
     <p style="margin:0;">© 2026 · Powered By PDF-banao · All rights reserved. | Developed by Goutam Kumar</p>
   </footer>
+  <div class="toast" id="toast" role="status"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -512,9 +584,11 @@
   const startOverBtn = $("startOverBtn");
   const startOverTopBtn = $("startOverTopBtn");
   const backToEditBtn = $("backToEditBtn");
-  const navPrivacy = $("navPrivacy");
-  const navAbout = $("navAbout");
+  const infoBtn = $("infoBtn");
   const brandHome = $("brandHome");
+  const megaOverlay = $("megaOverlay");
+  const toolHintBanner = $("toolHintBanner");
+  const toastEl = $("toast");
 
   // ---- state --------------------------------------------------------------
   const state = {
@@ -1166,13 +1240,207 @@
   backToEditBtn.addEventListener("click", () => showView("workspace"));
   brandHome.addEventListener("click", (e) => { e.preventDefault(); if (!state.processing) showView(state.pages.length ? "workspace" : "empty"); });
 
-  // ---- info nav (lightweight, no routing needed for a single-file tool) -----------------
-  navPrivacy.addEventListener("click", () => {
-    alert("Privacy:\n\n• Files are processed locally in your browser using PDF.js and pdf-lib.\n• Nothing is uploaded to a server — merging happens entirely on this device.\n• Files and the merged PDF exist only in this browser tab's memory and are cleared when you close or reload the page, or click \"Start new\".\n• No accounts, no tracking of document content.");
+  // ---- info button --------------------------------------------------------
+  infoBtn.addEventListener("click", () => {
+    alert("PDF Banao merges PDF, JPG, JPEG and PNG files into a single PDF.\n\n• Every page is fit to A4 — scaled proportionally, never stretched.\n• Compress slider: 100% keeps original quality/size; below 100%, pages are compressed toward that % of their original file size.\n• Rotate, reorder and delete pages before merging.\n\nPrivacy:\n• Files are processed locally in your browser — nothing is uploaded to a server.\n• Files and the merged PDF exist only in this browser tab's memory and are cleared when you close/reload the page or click \"Start new\".\n• No accounts, no tracking of document content.");
   });
-  navAbout.addEventListener("click", () => {
-    alert("PDF Banao merges PDF, JPG, JPEG and PNG files into a single PDF.\n\n• Every page is fit to A4 (portrait or landscape, matching its own content) — scaled proportionally, never stretched.\n• Compression slider: 100% keeps original quality/size; below 100%, pages are compressed toward that % of their original file size.\n• Rotate, reorder and delete pages before merging.\n• Everything runs client-side — built for cyber cafés, offices and students.");
+
+  // ---- tool menu (PDF Tools / Image Tools / Converter Tools) --------------------------------------------------------
+  // "live" tools route into this same merge workflow (with a short context
+  // hint); everything else is shown so the full menu structure is visible,
+  // but is clearly marked "Soon" rather than pretending to work.
+  const TOOL_MENUS = {
+    pdf: {
+      groups: [
+        { title: "Optimize PDF", items: [
+          { id: "compress-pdf", label: "Compress PDF", icon: "🗜", live: true },
+        ]},
+        { title: "Merge & Split", items: [
+          { id: "merge-pdf", label: "Merge PDF", icon: "🧩", live: true },
+          { id: "merge-pdf-image", label: "Merge PDF and Image", icon: "🧷", live: true },
+          { id: "split-pdf", label: "Split PDF", icon: "✂️" },
+        ]},
+        { title: "View & Edit", items: [
+          { id: "crop-pdf-page", label: "Crop PDF Page", icon: "⬛" },
+          { id: "organize-pdf", label: "Organize PDF", icon: "🗂" },
+          { id: "rotate-pdf", label: "Rotate PDF", icon: "🔃" },
+          { id: "remove-pdf-pages", label: "Remove PDF Pages", icon: "🗑" },
+          { id: "extract-pdf", label: "Extract PDF", icon: "📤" },
+          { id: "extract-images", label: "Extract Images", icon: "🖼" },
+          { id: "add-page-number", label: "Add Page Number", icon: "#️⃣" },
+          { id: "add-watermark", label: "Add Watermark", icon: "💧" },
+        ]},
+        { title: "Convert to PDF", items: [
+          { id: "image-to-pdf", label: "Image to PDF", icon: "🖼", live: true },
+          { id: "jpg-to-pdf", label: "JPG to PDF", icon: "🖼", live: true },
+          { id: "word-to-pdf", label: "Word to PDF", icon: "📝" },
+          { id: "ppt-to-pdf", label: "PowerPoint to PDF", icon: "📽" },
+          { id: "excel-to-pdf", label: "Excel to PDF", icon: "📊" },
+          { id: "text-to-pdf", label: "Text to PDF", icon: "📄" },
+        ]},
+        { title: "Convert from PDF", items: [
+          { id: "pdf-to-image", label: "PDF to Image", icon: "🖼" },
+          { id: "pdf-to-jpg", label: "PDF to JPG", icon: "🖼" },
+          { id: "pdf-to-word", label: "PDF to Word", icon: "📝" },
+          { id: "pdf-to-ppt", label: "PDF to PowerPoint", icon: "📽" },
+          { id: "pdf-to-excel", label: "PDF to Excel", icon: "📊" },
+          { id: "pdf-to-text", label: "PDF to Text", icon: "📄" },
+        ]},
+        { title: "PDF Security", items: [
+          { id: "unlock-pdf", label: "Unlock PDF", icon: "🔓" },
+          { id: "protect-pdf", label: "Protect PDF", icon: "🔒" },
+        ]},
+      ],
+    },
+    image: {
+      groups: [
+        { title: "Optimize Image", items: [
+          { id: "compress-image", label: "Compress Image", icon: "🗜" },
+          { id: "compress-jpg", label: "Compress JPG", icon: "🗜" },
+          { id: "compress-png", label: "Compress PNG", icon: "🗜" },
+          { id: "compress-jpeg", label: "Compress JPEG", icon: "🗜" },
+          { id: "compress-webp", label: "Compress WEBP", icon: "🗜" },
+          { id: "compress-heic", label: "Compress HEIC", icon: "🗜" },
+          { id: "compress-bmp", label: "Compress BMP", icon: "🗜" },
+        ]},
+        { title: "Convert Image", items: [
+          { id: "image-to-jpg", label: "Image to JPG", icon: "🔄" },
+          { id: "image-to-png", label: "Image to PNG", icon: "🔄" },
+          { id: "image-to-jpeg", label: "Image to JPEG", icon: "🔄" },
+          { id: "image-to-webp", label: "Image to WEBP", icon: "🔄" },
+          { id: "webp-to-jpeg", label: "WEBP to JPEG", icon: "🔄" },
+          { id: "heic-to-jpeg", label: "HEIC to JPEG", icon: "🔄" },
+        ]},
+        { title: "Edit Image", items: [
+          { id: "image-crop", label: "Image Crop", icon: "✂️" },
+          { id: "image-resize", label: "Image Resize", icon: "📐" },
+          { id: "image-rotate", label: "Image Rotate", icon: "🔃" },
+          { id: "image-crop-circle", label: "Image Crop Circle", icon: "⭕" },
+          { id: "image-merge", label: "Image Merge", icon: "🧩" },
+          { id: "photo-signature-resize", label: "Photo Signature Resize", icon: "✍️" },
+        ]},
+      ],
+    },
+    converter: {
+      groups: [
+        { title: "Convert from eBook", items: [
+          { id: "ebook-to-pdf", label: "eBook to PDF", icon: "📚" },
+          { id: "epub-to-pdf", label: "EPUB to PDF", icon: "📚" },
+          { id: "mobi-to-pdf", label: "MOBI to PDF", icon: "📚" },
+          { id: "azw-to-pdf", label: "AZW to PDF", icon: "📚" },
+          { id: "azw3-to-pdf", label: "AZW3 to PDF", icon: "📚" },
+          { id: "djvu-to-pdf", label: "DJVU to PDF", icon: "📚" },
+        ]},
+        { title: "Convert to eBook", items: [
+          { id: "pdf-to-ebook", label: "PDF to eBook", icon: "📚" },
+          { id: "pdf-to-epub", label: "PDF to EPUB", icon: "📚" },
+          { id: "pdf-to-mobi", label: "PDF to MOBI", icon: "📚" },
+          { id: "pdf-to-azw3", label: "PDF to AZW3", icon: "📚" },
+          { id: "pdf-to-fb2", label: "PDF to FB2", icon: "📚" },
+          { id: "pdf-to-rtf", label: "PDF to RTF", icon: "📚" },
+        ]},
+        { title: "Converter", items: [
+          { id: "image-converter", label: "Image Converter", icon: "🔄" },
+          { id: "document-converter", label: "Document Converter", icon: "📄" },
+          { id: "excel-converter", label: "Excel Converter", icon: "📊" },
+          { id: "presentation-converter", label: "Presentation Converter", icon: "📽" },
+          { id: "ebook-converter", label: "Ebook Converter", icon: "📚" },
+          { id: "vector-converter", label: "Vector Converter", icon: "🖊" },
+          { id: "cad-converter", label: "Cad Converter", icon: "📐" },
+        ]},
+        { title: "GIF", items: [
+          { id: "images-to-gif", label: "Images to GIF", icon: "🎞" },
+          { id: "gif-to-images", label: "GIF to Images", icon: "🎞" },
+        ]},
+        { title: "ZIP", items: [
+          { id: "zip-maker", label: "ZIP Maker", icon: "🗜" },
+          { id: "zip-extractor", label: "ZIP Extractor", icon: "📦" },
+        ]},
+        { title: "Others", items: [
+          { id: "barcode-generator", label: "Barcode Generator", icon: "🔳" },
+          { id: "password-generator", label: "Password Generator", icon: "🔑" },
+          { id: "image-to-color", label: "Image to Color", icon: "🎨" },
+          { id: "color-extractor", label: "Color Extractor", icon: "🎨" },
+        ]},
+      ],
+    },
+  };
+
+  const LIVE_TOOL_HINTS = {
+    "merge-pdf": "Merge PDF selected — upload two or more PDFs, arrange the pages, then merge.",
+    "merge-pdf-image": "Merge PDF and Image selected — mix PDF and photo files in any order.",
+    "compress-pdf": "Compress PDF selected — upload your PDF, then lower the Compress % before downloading.",
+    "image-to-pdf": "Image to PDF selected — upload your photos to turn them into one PDF.",
+    "jpg-to-pdf": "JPG to PDF selected — upload your JPG files to turn them into one PDF.",
+  };
+
+  function buildMenuHtml(menuKey) {
+    return TOOL_MENUS[menuKey].groups.map((group) => `
+      <div class="menu-col">
+        <div class="menu-col-title">${escapeHtml(group.title)}</div>
+        ${group.items.map((item) => `
+          <button type="button" class="menu-item ${item.live ? "" : "soon"}" data-tool="${item.id}">
+            <span class="menu-item-icon cat-${menuKey}">${item.icon}</span>
+            <span class="menu-item-label">${escapeHtml(item.label)}</span>
+            ${item.live ? "" : `<span class="soon-badge">Soon</span>`}
+          </button>
+        `).join("")}
+      </div>
+    `).join("");
+  }
+
+  const megaButtons = Array.from(document.querySelectorAll(".mega-btn"));
+
+  function closeAllMenus() {
+    megaButtons.forEach((b) => b.classList.remove("open"));
+    document.querySelectorAll(".mega-panel").forEach((p) => p.classList.remove("open"));
+    megaOverlay.classList.remove("open");
+  }
+
+  megaButtons.forEach((btn) => {
+    const key = btn.dataset.menu;
+    const panel = $("megaPanel-" + key);
+    panel.innerHTML = buildMenuHtml(key);
+    btn.addEventListener("click", () => {
+      const wasOpen = btn.classList.contains("open");
+      closeAllMenus();
+      if (!wasOpen) {
+        btn.classList.add("open");
+        panel.classList.add("open");
+        megaOverlay.classList.add("open");
+      }
+    });
+    panel.addEventListener("click", (e) => {
+      const item = e.target.closest(".menu-item");
+      if (!item) return;
+      closeAllMenus();
+      activateTool(item.dataset.tool);
+    });
   });
+  megaOverlay.addEventListener("click", closeAllMenus);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllMenus(); });
+
+  function showToolHint(msg) {
+    toolHintBanner.textContent = "🔧 " + msg;
+    toolHintBanner.classList.add("show");
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove("show"), 3800);
+  }
+
+  function activateTool(toolId) {
+    if (LIVE_TOOL_HINTS[toolId]) {
+      showToolHint(LIVE_TOOL_HINTS[toolId]);
+      const target = $(state.pages.length ? "workspace" : "emptyState");
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      showToast("🚧 Yeh tool jald aayega. Abhi try karo: Merge PDF, Merge PDF+Image, Compress PDF ya Image to PDF.");
+    }
+  }
 
   // ---- initial render --------------------------------------------------------
   showView("empty");

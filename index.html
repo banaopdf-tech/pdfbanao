@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>PDF Master — Merge PDF & Images into One PDF</title>
-<meta name="description" content="Merge multiple PDF, JPG, JPEG and PNG files into one PDF while preserving original document size. Fast, simple and privacy-focused — everything happens in your browser.">
-<meta property="og:title" content="PDF Master — Merge PDF & Images into One PDF">
-<meta property="og:description" content="Combine PDFs and images into a single PDF. Original page sizes preserved. Nothing is uploaded to a server.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230E6E64'/%3E%3Ctext x='50' y='62' font-family='Georgia,serif' font-size='38' fill='%23F2F4F3' text-anchor='middle' font-weight='700'%3EPM%3C/text%3E%3C/svg%3E">
+<title>PDF Banao — Merge PDF & Images into One PDF</title>
+<meta name="description" content="Merge multiple PDF, JPG, JPEG and PNG files into one PDF. Every page is fit to A4, quality preserved. Fast, simple and privacy-focused — everything happens in your browser.">
+<meta property="og:title" content="PDF Banao — Merge PDF & Images into One PDF">
+<meta property="og:description" content="Combine PDFs and images into a single A4 PDF. Nothing is uploaded to a server.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230E6E64'/%3E%3Ctext x='50' y='62' font-family='Georgia,serif' font-size='38' fill='%23F2F4F3' text-anchor='middle' font-weight='700'%3EPB%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --paper:#F2F4F3;
@@ -316,9 +316,9 @@
 
   <header class="topbar">
     <a href="#" class="brand" id="brandHome">
-      <span class="seal" aria-hidden="true">PM</span>
+      <span class="seal" aria-hidden="true">PB</span>
       <span class="brand-text">
-        <span class="brand-name">PDF Master</span>
+        <span class="brand-name">PDF Banao</span>
         <span class="brand-tag">Merge PDFs &amp; images easily</span>
       </span>
     </a>
@@ -328,6 +328,8 @@
     </nav>
     <div class="privacy-pill">🔒 <span class="long">Files never leave your browser</span><span class="sr-only">Files are processed locally and are not uploaded to a server</span></div>
   </header>
+
+  <input type="file" id="fileInput" class="sr-only" multiple accept=".pdf,.jpg,.jpeg,.png">
 
   <main>
 
@@ -347,7 +349,6 @@
         <div class="dropzone-sub">You can select multiple files at once</div>
         <div class="filetypes">PDF · JPG · JPEG · PNG</div>
       </div>
-      <input type="file" id="fileInput" class="sr-only" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
 
       <p class="empty-footnote">🔒 Your files are processed locally in your browser and are not uploaded to our server.</p>
     </section>
@@ -371,21 +372,22 @@
           <h3>Page size</h3>
           <div class="size-mode-row">
             <span class="dot" aria-hidden="true"></span>
-            <span class="txt">Original size — preserved per page</span>
+            <span class="txt">Every page fits to A4</span>
           </div>
-          <p class="size-mode-note">Every PDF page keeps its own size (A4, A3, Letter, etc.) and every image keeps its own aspect ratio. Mixed sizes in one PDF are fine.</p>
+          <p class="size-mode-note">Each PDF page and image is scaled proportionally (never stretched or distorted) to fit an A4 page — portrait or landscape, matching its own orientation.</p>
         </div>
 
         <div class="control-block">
-          <h3>Scale</h3>
+          <h3>Compress (file size)</h3>
           <div class="scale-row">
-            <input type="range" id="scaleSlider" min="1" max="100" value="100" aria-label="Scale percentage" aria-describedby="scaleValueLabel">
+            <input type="range" id="scaleSlider" min="1" max="100" value="100" aria-label="Compression percentage" aria-describedby="scaleValueLabel">
           </div>
-          <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:10px;">
+          <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:4px;">
             <span class="scale-value" id="scaleValueLabel">100%</span>
-            <span style="font-size:12px;color:var(--ink-faint);" id="scaleOriginalNote">(Original Size)</span>
+            <span style="font-size:12px;color:var(--ink-faint);" id="scaleOriginalNote">(original quality)</span>
           </div>
-          <div class="scale-presets" role="group" aria-label="Scale presets">
+          <div id="scaleSizeEstimate" style="font-size:12.5px; color:var(--ink-faint); margin-bottom:10px;"></div>
+          <div class="scale-presets" role="group" aria-label="Compression presets">
             <button class="preset-btn" data-preset="25" type="button">25%</button>
             <button class="preset-btn" data-preset="50" type="button">50%</button>
             <button class="preset-btn" data-preset="75" type="button">75%</button>
@@ -413,7 +415,7 @@
         <strong id="resultPages">0</strong> pages &nbsp;·&nbsp; <strong id="resultSize">0 MB</strong>
       </div>
       <div class="result-actions">
-        <a class="stack-btn btn-primary" id="downloadBtn" download="PDF-Master-merged.pdf" href="#">⬇ Download PDF</a>
+        <a class="stack-btn btn-primary" id="downloadBtn" download="PDF-Banao-merged.pdf" href="#">⬇ Download PDF</a>
         <button class="stack-btn btn-ghost" id="backToEditBtn" type="button">Back to edit</button>
         <button class="stack-btn btn-ghost" id="startOverBtn" type="button">Start new</button>
       </div>
@@ -422,7 +424,8 @@
   </main>
 
   <footer>
-    🔒 <span class="lock">Your files are processed locally in your browser</span> and are never uploaded to a server. Nothing is stored after you close this page.
+    <p style="margin:0 0 8px;">🔒 <span class="lock">Your files are processed locally in your browser</span> and are never uploaded to a server. Nothing is stored after you close this page.</p>
+    <p style="margin:0;">© 2026 · Powered By PDF-banao · All rights reserved. | Developed by Goutam Kumar</p>
   </footer>
 </div>
 
@@ -433,29 +436,46 @@
   "use strict";
 
   /* ---------------------------------------------------------------------
-   * PDF MASTER — client-side PDF + image merger
+   * PDF BANAO — client-side PDF + image merger, fit to A4
    *
    * Design notes (read this before touching the merge logic):
-   *  - PDF pages are copied with pdf-lib's copyPages(), which copies the
-   *    real vector page object (fonts, content streams, annotations).
-   *    We never rasterize a source PDF page just to re-embed it — that
-   *    would lose quality. pdf.js is used ONLY to build small on-screen
-   *    thumbnails and to read page counts/sizes/passwords up front.
-   *  - Page rotation (for both PDF pages and images) is applied using the
-   *    standard PDF /Rotate page attribute via page.setRotation(). This
-   *    is how every PDF viewer expects rotation to be signalled, and it
-   *    never touches the underlying pixel/vector content.
-   *  - "Scale" (1-100%) is applied with pdf-lib's page.scale(f, f) for
-   *    copied PDF pages (which resizes the page box + content together),
-   *    and by simply drawing images onto a smaller page for image pages.
+   *  - Every output page is A4 (portrait or landscape, whichever matches
+   *    that page's own orientation). Content is always scaled UNIFORMLY
+   *    (never stretched) to fit inside the A4 box and centered.
+   *  - Two quality modes, controlled by the Compress slider (state.scale):
+   *      100%  → vector-preserving path. PDF pages are embedded as a real
+   *              Form XObject (outDoc.embedPage) — never rasterized — and
+   *              images embed their ORIGINAL bytes untouched. Output size
+   *              stays essentially the same as the input.
+   *      <100% → compression path. Every page (PDF or image) is rasterized
+   *              to a canvas (PDF pages via pdf.js at a fixed DPI; images
+   *              at their native resolution) and re-encoded as JPEG, with
+   *              the JPEG quality picked via binary search to land close
+   *              to a per-page byte budget = that page's share of the
+   *              original total size × scale/100. This is what actually
+   *              shrinks the downloaded file size — the 100% path cannot,
+   *              since vector content and untouched image bytes don't have
+   *              a "lower quality, smaller file" knob.
+   *  - Rotation: at 100%, PDF pages rotate via the standard page /Rotate
+   *    attribute (set on the destination page, with its raw/pre-rotation
+   *    box sized so it reads correctly after rotation — the documented
+   *    pdf-lib pattern for preserving rotation through an embed). Images
+   *    at 100% are re-drawn onto a canvas only when rotated (untouched
+   *    otherwise). On the <100% path, rotation is simply baked into the
+   *    raster render directly (pdf.js viewport rotation, or a canvas
+   *    rotate for images), so no page-level rotation is needed there.
    *  - Images have no page-size metadata, so there is no universal
    *    "physical size" for a JPG/PNG. We assume 96 DPI (a common browser/
    *    OS default) to convert pixel dimensions to PDF points. This is a
-   *    documented, deterministic fallback — not a guess that changes
-   *    between runs.
+   *    documented, deterministic fallback.
+   *  - pdf.js is used for on-screen thumbnails, page counts/sizes/
+   *    passwords up front, AND (only on the compression path) the actual
+   *    rasterization used in the merged output.
    * ------------------------------------------------------------------- */
 
   const PT_PER_PX_AT_96DPI = 72 / 96; // 0.75
+  const A4_PORTRAIT = [595.28, 841.89];
+  const A4_LANDSCAPE = [841.89, 595.28];
 
   if (typeof window.pdfjsLib !== "undefined") {
     pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -477,6 +497,7 @@
   const scaleSlider = $("scaleSlider");
   const scaleValueLabel = $("scaleValueLabel");
   const scaleOriginalNote = $("scaleOriginalNote");
+  const scaleSizeEstimate = $("scaleSizeEstimate");
   const presetBtns = Array.from(document.querySelectorAll(".preset-btn"));
   const ingestStatus = $("ingestStatus");
   const ingestStatusText = $("ingestStatusText");
@@ -499,7 +520,7 @@
   const state = {
     files: new Map(),   // id -> { id, name, size, kind:'pdf'|'jpeg'|'png', arrayBuffer, pdfjsDoc, error }
     pages: [],           // ordered list of page entries (see below)
-    scale: 100,
+    scale: 100,           // 100 = original quality/size; below that, pages are compressed to roughly scale% of their original bytes
     processing: false,
     lastObjectUrl: null,
   };
@@ -554,6 +575,129 @@
     const ctx = c.getContext("2d");
     ctx.drawImage(sourceCanvas, 0, 0, c.width, c.height);
     return c.toDataURL("image/jpeg", 0.72);
+  }
+
+  // Work out how to place a rawW x rawH box (possibly rotated by a multiple
+  // of 90) inside an A4 page so it fits without distortion, centered, with
+  // the A4 orientation chosen to match the content's own orientation.
+  // Returns the RAW (pre-rotation) target page box plus the raw draw
+  // position/size — rotation itself is applied afterwards on the page.
+  function planFitToA4(rawW, rawH, totalRotation) {
+    const swapped = totalRotation === 90 || totalRotation === 270;
+    const visualW = swapped ? rawH : rawW;
+    const visualH = swapped ? rawW : rawH;
+    const target = visualW >= visualH ? A4_LANDSCAPE : A4_PORTRAIT;
+    const rawTargetW = swapped ? target[1] : target[0];
+    const rawTargetH = swapped ? target[0] : target[1];
+    const fitScale = Math.min(rawTargetW / rawW, rawTargetH / rawH);
+    const drawW = rawW * fitScale;
+    const drawH = rawH * fitScale;
+    return {
+      rawTargetW, rawTargetH,
+      drawX: (rawTargetW - drawW) / 2,
+      drawY: (rawTargetH - drawH) / 2,
+      drawW, drawH,
+    };
+  }
+
+  // Re-draw a full-resolution image onto a canvas rotated by 0/90/180/270,
+  // used only when the user has rotated that image (kept out of the default
+  // path so un-rotated images embed their original bytes untouched).
+  function rotateBitmapToCanvas(bitmap, angleDeg) {
+    const rad = (angleDeg * Math.PI) / 180;
+    const swap = angleDeg === 90 || angleDeg === 270;
+    const w = swap ? bitmap.height : bitmap.width;
+    const h = swap ? bitmap.width : bitmap.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+    return canvas;
+  }
+
+  function canvasToBytes(canvas, mime, quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) { reject(new Error("toBlob failed")); return; }
+        resolve(new Uint8Array(await blob.arrayBuffer()));
+      }, mime, quality);
+    });
+  }
+
+  // ---- compression (scale < 100%) helpers ------------------------------------
+  const COMPRESS_DPI = 150;      // rasterization DPI used for PDF pages when compressing
+  const JPEG_MIN_Q = 0.25;
+  const JPEG_MAX_Q = 0.92;
+  const QUALITY_SEARCH_STEPS = 6;
+
+  // Roughly how many bytes of the original upload this one page "owns" —
+  // for an image, its whole file size; for a PDF page, its file's size
+  // divided evenly across that file's pages. Used only to size the scale
+  // slider's live estimate and to give each page a compression target.
+  function getPageOriginalBytes(entry) {
+    const fileRecord = state.files.get(entry.fileId);
+    if (!fileRecord) return 0;
+    if (entry.kind === "pdf") {
+      const n = (fileRecord.pdfjsDoc && fileRecord.pdfjsDoc.numPages) || 1;
+      return fileRecord.size / n;
+    }
+    return fileRecord.size;
+  }
+
+  function currentTotalOriginalBytes() {
+    return state.pages
+      .filter((p) => !p.error && p.kind !== "error")
+      .reduce((sum, e) => sum + getPageOriginalBytes(e), 0);
+  }
+
+  function updateScaleSizeEstimate() {
+    if (!scaleSizeEstimate) return;
+    const total = currentTotalOriginalBytes();
+    if (!total) { scaleSizeEstimate.textContent = ""; return; }
+    scaleSizeEstimate.textContent = state.scale === 100
+      ? `Output ≈ ${formatBytes(total)} — original quality, nothing re-compressed`
+      : `Output ≈ ${formatBytes(total * (state.scale / 100))} (of ${formatBytes(total)} original)`;
+  }
+
+  // Binary-search the JPEG quality that lands closest to targetBytes for an
+  // already-rendered canvas. Re-encodes only (no re-render) each attempt.
+  async function fitJpegToTarget(canvas, targetBytes) {
+    let lo = JPEG_MIN_Q, hi = JPEG_MAX_Q, best = null;
+    for (let i = 0; i < QUALITY_SEARCH_STEPS; i++) {
+      const q = (lo + hi) / 2;
+      const bytes = await canvasToBytes(canvas, "image/jpeg", q);
+      if (!best || Math.abs(bytes.length - targetBytes) < Math.abs(best.length - targetBytes)) {
+        best = bytes;
+      }
+      if (bytes.length > targetBytes) hi = q; else lo = q;
+    }
+    return best;
+  }
+
+  // Draw a full-resolution image onto a white-backed canvas (JPEG has no
+  // alpha), applying rotation if any. Used only on the compression path,
+  // since its output is always re-encoded as JPEG regardless of source format.
+  async function renderImageForCompression(fileRecord, rotationDeg) {
+    const blob = new Blob([fileRecord.arrayBuffer.slice(0)], { type: fileRecord.kind === "png" ? "image/png" : "image/jpeg" });
+    const bitmap = await createImageBitmap(blob);
+    const rad = (rotationDeg * Math.PI) / 180;
+    const swap = rotationDeg === 90 || rotationDeg === 270;
+    const w = swap ? bitmap.height : bitmap.width;
+    const h = swap ? bitmap.width : bitmap.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, w, h);
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+    bitmap.close && bitmap.close();
+    return canvas;
   }
 
   // ---- view switching --------------------------------------------------------
@@ -678,6 +822,8 @@
         fileId: fileRecord.id,
         kind: fileRecord.kind, // 'jpeg' | 'png'
         pageIndexInFile: 0,
+        pxWidth: bitmap.width,
+        pxHeight: bitmap.height,
         widthPt: bitmap.width * PT_PER_PX_AT_96DPI,
         heightPt: bitmap.height * PT_PER_PX_AT_96DPI,
         rotation: 0,
@@ -746,6 +892,7 @@
     });
 
     updateMergeButtonState();
+    updateScaleSizeEstimate();
   }
 
   function escapeHtml(s) {
@@ -817,7 +964,7 @@
     renderPageList();
   });
 
-  // ---- scale control --------------------------------------------------------
+  // ---- scale (compression) control --------------------------------------------------------
   function setScale(val) {
     val = Math.min(100, Math.max(1, Math.round(val)));
     state.scale = val;
@@ -826,6 +973,7 @@
     scaleValueLabel.textContent = val + "%";
     scaleOriginalNote.style.display = val === 100 ? "" : "none";
     presetBtns.forEach((b) => b.classList.toggle("active", Number(b.dataset.preset) === val));
+    updateScaleSizeEstimate();
   }
   scaleSlider.addEventListener("input", () => setScale(scaleSlider.value));
   presetBtns.forEach((b) => b.addEventListener("click", () => setScale(Number(b.dataset.preset))));
@@ -846,8 +994,9 @@
     if (e.dataTransfer.files && e.dataTransfer.files.length) ingestFiles(e.dataTransfer.files);
   });
   fileInput.addEventListener("change", () => {
-    if (fileInput.files.length) ingestFiles(fileInput.files);
-    fileInput.value = "";
+    const selected = Array.from(fileInput.files || []);
+    fileInput.value = ""; // reset AFTER capturing, so a repeat pick of the same file(s) still fires "change"
+    if (selected.length) ingestFiles(selected);
   });
   addMoreBtn.addEventListener("click", () => fileInput.click());
 
@@ -873,35 +1022,98 @@
 
       for (let i = 0; i < total; i++) {
         const entry = validPages[i];
-        progressStatus.textContent = entry.kind === "pdf" ? "Copying PDF pages…" : "Placing images…";
+        const fileRecord = state.files.get(entry.fileId);
         progressCount.textContent = `${i + 1} / ${total}`;
         progressBarFill.style.width = Math.round(((i + 1) / total) * 100) + "%";
 
         try {
-          if (entry.kind === "pdf") {
-            const fileRecord = state.files.get(entry.fileId);
-            let srcDoc = pdfLibDocCache.get(entry.fileId);
-            if (!srcDoc) {
-              srcDoc = await PDFLib.PDFDocument.load(fileRecord.arrayBuffer.slice(0), { ignoreEncryption: true });
-              pdfLibDocCache.set(entry.fileId, srcDoc);
+          if (state.scale === 100) {
+            // ---- original quality: vector PDF pages stay vector, images keep their original bytes ----
+            progressStatus.textContent = entry.kind === "pdf" ? "Fitting PDF pages to A4…" : "Fitting images to A4…";
+
+            if (entry.kind === "pdf") {
+              let srcDoc = pdfLibDocCache.get(entry.fileId);
+              if (!srcDoc) {
+                srcDoc = await PDFLib.PDFDocument.load(fileRecord.arrayBuffer.slice(0), { ignoreEncryption: true });
+                pdfLibDocCache.set(entry.fileId, srcDoc);
+              }
+              const srcPage = srcDoc.getPage(entry.pageIndexInFile);
+              const { width: rawW, height: rawH } = srcPage.getSize();
+              const rawAngle = srcPage.getRotation().angle || 0;
+              const baseRotation = ((rawAngle % 360) + 360) % 360;
+              const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
+
+              const embedded = await outDoc.embedPage(srcPage);
+              const plan = planFitToA4(rawW, rawH, totalRotation);
+
+              const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+              destPage.drawPage(embedded, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+              if (totalRotation) destPage.setRotation(PDFLib.degrees(totalRotation));
+            } else {
+              let bytes;
+              let pxW = entry.pxWidth;
+              let pxH = entry.pxHeight;
+
+              if (entry.rotation) {
+                // Only rotated images pay the (small) cost of a re-encode —
+                // this is the one case where a page-level attribute can't
+                // carry the rotation, since images aren't PDF page objects.
+                const srcBlob = new Blob([fileRecord.arrayBuffer.slice(0)], {
+                  type: entry.kind === "png" ? "image/png" : "image/jpeg",
+                });
+                const bitmap = await createImageBitmap(srcBlob);
+                const rotatedCanvas = rotateBitmapToCanvas(bitmap, entry.rotation);
+                bitmap.close && bitmap.close();
+                pxW = rotatedCanvas.width;
+                pxH = rotatedCanvas.height;
+                bytes = entry.kind === "png"
+                  ? await canvasToBytes(rotatedCanvas, "image/png")
+                  : await canvasToBytes(rotatedCanvas, "image/jpeg", 0.95);
+              } else {
+                bytes = new Uint8Array(fileRecord.arrayBuffer.slice(0)); // original bytes, untouched
+              }
+
+              const img = entry.kind === "png" ? await outDoc.embedPng(bytes) : await outDoc.embedJpg(bytes);
+              const rawW = pxW * PT_PER_PX_AT_96DPI;
+              const rawH = pxH * PT_PER_PX_AT_96DPI;
+              const plan = planFitToA4(rawW, rawH, 0); // rotation already baked into the pixels above
+
+              const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+              destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
             }
-            const [copied] = await outDoc.copyPages(srcDoc, [entry.pageIndexInFile]);
-            if (state.scale !== 100) copied.scale(state.scale / 100, state.scale / 100);
-            if (entry.rotation) {
-              const cur = copied.getRotation().angle || 0;
-              copied.setRotation(PDFLib.degrees((cur + entry.rotation) % 360));
-            }
-            outDoc.addPage(copied);
           } else {
-            const fileRecord = state.files.get(entry.fileId);
-            const bytes = new Uint8Array(fileRecord.arrayBuffer.slice(0));
-            const img = entry.kind === "png" ? await outDoc.embedPng(bytes) : await outDoc.embedJpg(bytes);
-            const factor = state.scale / 100;
-            const w = entry.widthPt * factor;
-            const h = entry.heightPt * factor;
-            const page = outDoc.addPage([w, h]);
-            page.drawImage(img, { x: 0, y: 0, width: w, height: h });
-            if (entry.rotation) page.setRotation(PDFLib.degrees(entry.rotation));
+            // ---- compressed: rasterize + binary-search JPEG quality to hit the target byte budget ----
+            progressStatus.textContent = "Compressing & fitting to A4…";
+            const budget = Math.max(8000, getPageOriginalBytes(entry) * (state.scale / 100));
+            let canvas, ptPerPx;
+
+            if (entry.kind === "pdf") {
+              const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
+              const baseRotation = ((pjsPage.rotate || 0) % 360 + 360) % 360;
+              const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
+              const renderScale = COMPRESS_DPI / 72;
+              const viewport = pjsPage.getViewport({ scale: renderScale, rotation: totalRotation });
+              canvas = document.createElement("canvas");
+              canvas.width = Math.max(1, Math.round(viewport.width));
+              canvas.height = Math.max(1, Math.round(viewport.height));
+              const ctx = canvas.getContext("2d");
+              ctx.fillStyle = "#FFFFFF";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              await pjsPage.render({ canvasContext: ctx, viewport }).promise;
+              ptPerPx = 72 / COMPRESS_DPI;
+            } else {
+              canvas = await renderImageForCompression(fileRecord, entry.rotation);
+              ptPerPx = PT_PER_PX_AT_96DPI;
+            }
+
+            const jpegBytes = await fitJpegToTarget(canvas, budget);
+            const img = await outDoc.embedJpg(jpegBytes);
+            const rawW = canvas.width * ptPerPx;
+            const rawH = canvas.height * ptPerPx;
+            const plan = planFitToA4(rawW, rawH, 0); // rotation already baked into the render/canvas above
+
+            const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+            destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
           }
         } catch (err) {
           skipped++;
@@ -922,7 +1134,7 @@
 
       downloadBtn.href = url;
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadBtn.download = `PDF-Master-merged-${stamp}.pdf`;
+      downloadBtn.download = `PDF-Banao-merged-${stamp}.pdf`;
       resultPages.textContent = outDoc.getPageCount();
       resultSize.textContent = formatBytes(bytes.byteLength);
 
@@ -959,7 +1171,7 @@
     alert("Privacy:\n\n• Files are processed locally in your browser using PDF.js and pdf-lib.\n• Nothing is uploaded to a server — merging happens entirely on this device.\n• Files and the merged PDF exist only in this browser tab's memory and are cleared when you close or reload the page, or click \"Start new\".\n• No accounts, no tracking of document content.");
   });
   navAbout.addEventListener("click", () => {
-    alert("PDF Master merges PDF, JPG, JPEG and PNG files into a single PDF.\n\n• Original page size is preserved by default (mixed sizes supported in one PDF).\n• Optional 1–100% scale, applied proportionally.\n• Rotate, reorder and delete pages before merging.\n• Everything runs client-side — built for cyber cafés, offices and students.");
+    alert("PDF Banao merges PDF, JPG, JPEG and PNG files into a single PDF.\n\n• Every page is fit to A4 (portrait or landscape, matching its own content) — scaled proportionally, never stretched.\n• Compression slider: 100% keeps original quality/size; below 100%, pages are compressed toward that % of their original file size.\n• Rotate, reorder and delete pages before merging.\n• Everything runs client-side — built for cyber cafés, offices and students.");
   });
 
   // ---- initial render --------------------------------------------------------

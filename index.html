@@ -1361,6 +1361,7 @@
       const pdfLibDocCache = new Map(); // fileId -> PDFLib document
 
       let skipped = 0;
+      let lastPageError = null;
       const total = validPages.length;
 
       for (let i = 0; i < total; i++) {
@@ -1386,12 +1387,35 @@
               const baseRotation = ((rawAngle % 360) + 360) % 360;
               const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
 
-              const embedded = await outDoc.embedPage(srcPage);
-              const plan = planFitToA4(rawW, rawH, totalRotation);
-
-              const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
-              destPage.drawPage(embedded, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
-              if (totalRotation) destPage.setRotation(PDFLib.degrees(totalRotation));
+              try {
+                // preferred path: embed the real vector page, full quality
+                const embedded = await outDoc.embedPage(srcPage);
+                const plan = planFitToA4(rawW, rawH, totalRotation);
+                const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+                destPage.drawPage(embedded, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+                if (totalRotation) destPage.setRotation(PDFLib.degrees(totalRotation));
+              } catch (vectorErr) {
+                // fallback: some PDFs (unusual structure/encryption) can't be
+                // embedded as a vector page — rasterize that page at high
+                // quality instead of dropping it from the merge entirely.
+                const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
+                const fbScale = 200 / 72;
+                const fbViewport = pjsPage.getViewport({ scale: fbScale, rotation: totalRotation });
+                const fbCanvas = document.createElement("canvas");
+                fbCanvas.width = Math.max(1, Math.round(fbViewport.width));
+                fbCanvas.height = Math.max(1, Math.round(fbViewport.height));
+                const fbCtx = fbCanvas.getContext("2d");
+                fbCtx.fillStyle = "#FFFFFF";
+                fbCtx.fillRect(0, 0, fbCanvas.width, fbCanvas.height);
+                await pjsPage.render({ canvasContext: fbCtx, viewport: fbViewport }).promise;
+                const fbBytes = await canvasToBytes(fbCanvas, "image/jpeg", 0.92);
+                const fbImg = await outDoc.embedJpg(fbBytes);
+                const fbRawW = fbCanvas.width * (72 / 200);
+                const fbRawH = fbCanvas.height * (72 / 200);
+                const fbPlan = planFitToA4(fbRawW, fbRawH, 0); // rotation already baked into the render above
+                const fbDestPage = outDoc.addPage([fbPlan.rawTargetW, fbPlan.rawTargetH]);
+                fbDestPage.drawImage(fbImg, { x: fbPlan.drawX, y: fbPlan.drawY, width: fbPlan.drawW, height: fbPlan.drawH });
+              }
             } else {
               let bytes;
               let pxW = entry.pxWidth;
@@ -1460,10 +1484,15 @@
           }
         } catch (err) {
           skipped++;
+          lastPageError = (err && err.message) ? err.message : String(err);
         }
 
         // yield to the UI so the progress bar actually paints
         await new Promise((r) => setTimeout(r, 0));
+      }
+
+      if (outDoc.getPageCount() === 0) {
+        throw new Error(lastPageError ? `no pages could be processed (${lastPageError})` : "no pages could be processed");
       }
 
       progressStatus.textContent = "Finalizing PDF…";
@@ -1490,7 +1519,8 @@
     } catch (err) {
       state.processing = false;
       showView("workspace");
-      showWarning("Something went wrong while creating the PDF. Please try again, or remove the problem file and retry.");
+      const detail = err && err.message ? " (" + err.message + ")" : "";
+      showWarning("Something went wrong while creating the PDF" + detail + ". Please try again, or remove the problem file and retry.");
     }
   }
 

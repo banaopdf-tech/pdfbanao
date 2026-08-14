@@ -148,6 +148,32 @@
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
+  /* ---------- individual tool pages ---------- */
+  .tool-app[hidden]{display:none !important;}
+  .back-link{
+    background:none; border:none; cursor:pointer; color:var(--ink-faint);
+    font-size:12.5px; font-weight:600; padding:0 0 14px; display:block;
+  }
+  .back-link:hover{color:var(--teal-dark);}
+  .result-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:12px;
+    max-width:720px; margin:0 auto; text-align:left;
+  }
+  .result-tile{
+    border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden; background:var(--paper-raise);
+  }
+  .result-tile img{width:100%; height:120px; object-fit:cover; display:block; background:#F2F2F2;}
+  .result-tile-foot{
+    display:flex; align-items:center; justify-content:space-between; padding:6px 8px; font-size:11px; color:var(--ink-faint);
+  }
+  .result-tile-foot a{color:var(--teal-dark); font-weight:700; text-decoration:none;}
+  .file-row{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--line);
+    border-radius:var(--radius-m); font-size:13px; margin-bottom:8px;
+  }
+  .file-row .fname{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .file-row .fsize{color:var(--ink-faint); font-size:12px; flex:none;}
+
   main{flex:1; width:100%; max-width:1180px; margin:0 auto; padding:28px 20px 60px;}
 
   /* ---------- empty state ---------- */
@@ -409,6 +435,9 @@
     </div>
     <div class="banner error" id="fileWarnBanner" role="alert"></div>
 
+    <!-- ============ TOOL: MERGE / COMPRESS / IMAGE-TO-PDF (existing) ============ -->
+    <div class="tool-app" id="app-merge">
+
     <!-- EMPTY STATE -->
     <section id="emptyState">
       <h1 class="hero-title">Merge PDFs &amp; Images Easily</h1>
@@ -492,6 +521,245 @@
       </div>
     </section>
 
+    </div>
+    <!-- ============ /TOOL: MERGE ============ -->
+
+    <!-- ============ TOOL: PDF PAGE EDITOR (Split / Organize / Rotate / Remove / Extract) ============ -->
+    <div class="tool-app" id="app-pageEditor" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" id="peTitle" style="font-size:26px;">PDF Page Editor</h1>
+      <p class="hero-sub" id="peSub" style="margin-bottom:22px;">Reorder, rotate, remove or split pages from one PDF.</p>
+
+      <section id="peEmpty">
+        <div class="dropzone" id="peDropzone" tabindex="0" role="button" aria-label="Upload a PDF">
+          <div class="dropzone-icon" aria-hidden="true">📄</div>
+          <div class="dropzone-primary">Drop a PDF here or <span class="link">browse files</span></div>
+          <div class="filetypes">PDF only</div>
+        </div>
+        <input type="file" id="peFileInput" class="sr-only" accept=".pdf">
+      </section>
+
+      <section id="peWorkspace" hidden>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Pages <span class="count" id="peCount"></span></h2>
+            <div class="head-actions">
+              <button class="stack-btn btn-ghost btn-sm" id="peStartOverBtn" type="button">Start new</button>
+            </div>
+          </div>
+          <div class="ingest-status" id="peIngestStatus"><span class="spinner" aria-hidden="true"></span><span>Reading PDF…</span></div>
+          <ul class="page-list" id="peList"></ul>
+        </div>
+        <aside class="panel controls">
+          <div class="control-block">
+            <h3>Original page sizes are kept</h3>
+            <p class="size-mode-note">Unlike Merge, this tool doesn't resize pages to A4 — each page keeps its exact original size, just reordered/rotated/removed as you choose.</p>
+          </div>
+          <button class="stack-btn btn-primary" id="peSaveOneBtn" type="button" disabled>💾 Save as one PDF</button>
+          <button class="stack-btn btn-ghost" id="peSplitBtn" type="button" disabled>✂️ Split into separate PDFs</button>
+        </aside>
+      </section>
+
+      <section id="peProgress" aria-live="polite" hidden>
+        <div class="progress-title">Working…</div>
+        <div class="progress-status" id="peProgressStatus">Processing…</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="peProgressFill"></div></div>
+      </section>
+
+      <section id="peResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title" id="peResultTitle">Done</div>
+        <div class="result-stats" id="peResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="peDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="peBackToEditBtn" type="button">Back to edit</button>
+          <button class="stack-btn btn-ghost" id="peStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: PDF PAGE EDITOR ============ -->
+
+    <!-- ============ TOOL: PDF TO IMAGE/JPG ============ -->
+    <div class="tool-app" id="app-pdfToImage" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">PDF to JPG</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Turn every page of a PDF into a downloadable JPG image.</p>
+
+      <section id="p2iEmpty">
+        <div class="dropzone" id="p2iDropzone" tabindex="0" role="button" aria-label="Upload a PDF">
+          <div class="dropzone-icon" aria-hidden="true">📄</div>
+          <div class="dropzone-primary">Drop a PDF here or <span class="link">browse files</span></div>
+          <div class="filetypes">PDF only</div>
+        </div>
+        <input type="file" id="p2iFileInput" class="sr-only" accept=".pdf">
+      </section>
+
+      <section id="p2iSettings" hidden>
+        <div class="panel" style="padding:20px; max-width:520px; margin:0 auto;">
+          <div class="control-block">
+            <h3>Image quality</h3>
+            <div class="scale-presets" role="group" aria-label="Image quality presets" id="p2iQuality">
+              <button class="preset-btn" data-dpi="96" type="button">Low</button>
+              <button class="preset-btn active" data-dpi="150" type="button">Medium</button>
+              <button class="preset-btn" data-dpi="220" type="button">High</button>
+            </div>
+            <p class="size-mode-note" id="p2iFileInfo" style="margin-top:12px;"></p>
+          </div>
+          <button class="stack-btn btn-primary" id="p2iConvertBtn" type="button">Convert to JPG</button>
+          <button class="stack-btn btn-ghost btn-sm" id="p2iStartOverBtn" type="button" style="margin-top:8px;">Start new</button>
+        </div>
+      </section>
+
+      <section id="p2iProgress" aria-live="polite" hidden>
+        <div class="progress-title">Converting…</div>
+        <div class="progress-status" id="p2iProgressStatus">Rendering pages…</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="p2iProgressFill"></div></div>
+        <div class="progress-count" id="p2iProgressCount"></div>
+      </section>
+
+      <section id="p2iResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Images Ready</div>
+        <div class="result-stats" id="p2iResultStats"></div>
+        <div class="result-grid" id="p2iResultGrid"></div>
+        <div class="result-actions" style="margin-top:18px;">
+          <a class="stack-btn btn-primary" id="p2iDownloadZipBtn" download="" href="#">⬇ Download All (ZIP)</a>
+          <button class="stack-btn btn-ghost" id="p2iStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: PDF TO IMAGE ============ -->
+
+    <!-- ============ TOOL: TEXT TO PDF ============ -->
+    <div class="tool-app" id="app-textToPdf" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Text to PDF</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Type or paste text and turn it into a downloadable PDF.</p>
+
+      <section id="t2pForm">
+        <div class="panel" style="padding:20px; max-width:640px; margin:0 auto;">
+          <textarea id="t2pTextarea" placeholder="Type or paste your text here…" style="width:100%; min-height:260px; border:1px solid var(--line); border-radius:var(--radius-m); padding:14px; font-family:var(--font-body); font-size:14px; resize:vertical; color:var(--ink);"></textarea>
+          <div style="display:flex; gap:14px; align-items:center; margin:14px 0;">
+            <label style="font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">Font size
+              <select id="t2pFontSize" style="padding:5px 8px; border-radius:var(--radius-s); border:1px solid var(--line);">
+                <option value="10">10pt</option>
+                <option value="12" selected>12pt</option>
+                <option value="14">14pt</option>
+                <option value="16">16pt</option>
+              </select>
+            </label>
+          </div>
+          <button class="stack-btn btn-primary" id="t2pGenerateBtn" type="button">Create PDF</button>
+        </div>
+      </section>
+
+      <section id="t2pResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">PDF Ready</div>
+        <div class="result-stats" id="t2pResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="t2pDownloadBtn" download="text-to-pdf.pdf" href="#">⬇ Download PDF</a>
+          <button class="stack-btn btn-ghost" id="t2pBackBtn" type="button">Back to editing</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: TEXT TO PDF ============ -->
+
+    <!-- ============ TOOL: PASSWORD GENERATOR ============ -->
+    <div class="tool-app" id="app-passwordGen" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Password Generator</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Create a strong, random password — generated on your device.</p>
+
+      <div class="panel" style="padding:22px; max-width:520px; margin:0 auto;">
+        <div id="pgOutputRow" style="display:flex; gap:8px; margin-bottom:18px;">
+          <input type="text" id="pgOutput" readonly style="flex:1; font-family:var(--font-mono); font-size:16px; padding:12px 14px; border-radius:var(--radius-m); border:1px solid var(--line); background:var(--paper);">
+          <button class="icon-btn" id="pgCopyBtn" type="button" style="width:46px;height:46px;" aria-label="Copy password" title="Copy">📋</button>
+        </div>
+        <div class="control-block">
+          <h3>Length: <span id="pgLengthLabel">16</span></h3>
+          <input type="range" id="pgLength" min="6" max="32" value="16" style="width:100%;">
+        </div>
+        <div class="control-block" style="display:flex; flex-direction:column; gap:8px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:13.5px;"><input type="checkbox" id="pgUpper" checked> Uppercase (A-Z)</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13.5px;"><input type="checkbox" id="pgLower" checked> Lowercase (a-z)</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13.5px;"><input type="checkbox" id="pgNumbers" checked> Numbers (0-9)</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13.5px;"><input type="checkbox" id="pgSymbols"> Symbols (!@#$…)</label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13.5px;"><input type="checkbox" id="pgExcludeAmbiguous"> Exclude ambiguous (l 1 I O 0)</label>
+        </div>
+        <button class="stack-btn btn-primary" id="pgGenerateBtn" type="button">🎲 Generate Password</button>
+      </div>
+    </div>
+    <!-- ============ /TOOL: PASSWORD GENERATOR ============ -->
+
+    <!-- ============ TOOL: ZIP MAKER ============ -->
+    <div class="tool-app" id="app-zipMaker" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">ZIP Maker</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Bundle any files into one .zip — built on your device.</p>
+
+      <section id="zmEmpty">
+        <div class="dropzone" id="zmDropzone" tabindex="0" role="button" aria-label="Upload files to zip">
+          <div class="dropzone-icon" aria-hidden="true">🗜</div>
+          <div class="dropzone-primary">Drop files here or <span class="link">browse files</span></div>
+          <div class="filetypes">Any file type</div>
+        </div>
+        <input type="file" id="zmFileInput" class="sr-only" multiple>
+      </section>
+
+      <section id="zmWorkspace" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Files <span class="count" id="zmCount"></span></h2></div>
+          <ul class="page-list" id="zmList"></ul>
+          <button class="add-more-btn" id="zmAddMoreBtn" type="button">+ Add more files</button>
+        </div>
+        <aside class="panel controls">
+          <div class="control-block">
+            <h3>Archive name</h3>
+            <input type="text" id="zmArchiveName" value="archive" style="width:100%; padding:9px 12px; border-radius:var(--radius-s); border:1px solid var(--line);">
+          </div>
+          <button class="stack-btn btn-primary" id="zmCreateBtn" type="button">Create ZIP</button>
+          <button class="stack-btn btn-ghost btn-sm" id="zmStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="zmResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">ZIP Ready</div>
+        <div class="result-stats" id="zmResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="zmDownloadBtn" download="" href="#">⬇ Download ZIP</a>
+          <button class="stack-btn btn-ghost" id="zmStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: ZIP MAKER ============ -->
+
+    <!-- ============ TOOL: ZIP EXTRACTOR ============ -->
+    <div class="tool-app" id="app-zipExtractor" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">ZIP Extractor</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Open a .zip file and download what's inside.</p>
+
+      <section id="zxEmpty">
+        <div class="dropzone" id="zxDropzone" tabindex="0" role="button" aria-label="Upload a zip file">
+          <div class="dropzone-icon" aria-hidden="true">📦</div>
+          <div class="dropzone-primary">Drop a .zip here or <span class="link">browse files</span></div>
+          <div class="filetypes">ZIP only</div>
+        </div>
+        <input type="file" id="zxFileInput" class="sr-only" accept=".zip">
+      </section>
+
+      <section id="zxResult" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Contents <span class="count" id="zxCount"></span></h2></div>
+          <ul class="page-list" id="zxList"></ul>
+        </div>
+        <button class="stack-btn btn-ghost btn-sm" id="zxStartOverBtn" type="button" style="max-width:200px; margin:16px auto 0;">Start new</button>
+      </section>
+    </div>
+    <!-- ============ /TOOL: ZIP EXTRACTOR ============ -->
+
   </main>
 
   <footer>
@@ -503,6 +771,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1238,7 +1507,7 @@
   startOverBtn.addEventListener("click", resetAll);
   startOverTopBtn.addEventListener("click", resetAll);
   backToEditBtn.addEventListener("click", () => showView("workspace"));
-  brandHome.addEventListener("click", (e) => { e.preventDefault(); if (!state.processing) showView(state.pages.length ? "workspace" : "empty"); });
+  brandHome.addEventListener("click", (e) => { e.preventDefault(); if (!state.processing) { showApp("merge"); showView(state.pages.length ? "workspace" : "empty"); } });
 
   // ---- info button --------------------------------------------------------
   infoBtn.addEventListener("click", () => {
@@ -1258,14 +1527,14 @@
         { title: "Merge & Split", items: [
           { id: "merge-pdf", label: "Merge PDF", icon: "🧩", live: true },
           { id: "merge-pdf-image", label: "Merge PDF and Image", icon: "🧷", live: true },
-          { id: "split-pdf", label: "Split PDF", icon: "✂️" },
+          { id: "split-pdf", label: "Split PDF", icon: "✂️", live: true },
         ]},
         { title: "View & Edit", items: [
           { id: "crop-pdf-page", label: "Crop PDF Page", icon: "⬛" },
-          { id: "organize-pdf", label: "Organize PDF", icon: "🗂" },
-          { id: "rotate-pdf", label: "Rotate PDF", icon: "🔃" },
-          { id: "remove-pdf-pages", label: "Remove PDF Pages", icon: "🗑" },
-          { id: "extract-pdf", label: "Extract PDF", icon: "📤" },
+          { id: "organize-pdf", label: "Organize PDF", icon: "🗂", live: true },
+          { id: "rotate-pdf", label: "Rotate PDF", icon: "🔃", live: true },
+          { id: "remove-pdf-pages", label: "Remove PDF Pages", icon: "🗑", live: true },
+          { id: "extract-pdf", label: "Extract PDF", icon: "📤", live: true },
           { id: "extract-images", label: "Extract Images", icon: "🖼" },
           { id: "add-page-number", label: "Add Page Number", icon: "#️⃣" },
           { id: "add-watermark", label: "Add Watermark", icon: "💧" },
@@ -1276,11 +1545,11 @@
           { id: "word-to-pdf", label: "Word to PDF", icon: "📝" },
           { id: "ppt-to-pdf", label: "PowerPoint to PDF", icon: "📽" },
           { id: "excel-to-pdf", label: "Excel to PDF", icon: "📊" },
-          { id: "text-to-pdf", label: "Text to PDF", icon: "📄" },
+          { id: "text-to-pdf", label: "Text to PDF", icon: "📄", live: true },
         ]},
         { title: "Convert from PDF", items: [
-          { id: "pdf-to-image", label: "PDF to Image", icon: "🖼" },
-          { id: "pdf-to-jpg", label: "PDF to JPG", icon: "🖼" },
+          { id: "pdf-to-image", label: "PDF to Image", icon: "🖼", live: true },
+          { id: "pdf-to-jpg", label: "PDF to JPG", icon: "🖼", live: true },
           { id: "pdf-to-word", label: "PDF to Word", icon: "📝" },
           { id: "pdf-to-ppt", label: "PDF to PowerPoint", icon: "📽" },
           { id: "pdf-to-excel", label: "PDF to Excel", icon: "📊" },
@@ -1353,12 +1622,12 @@
           { id: "gif-to-images", label: "GIF to Images", icon: "🎞" },
         ]},
         { title: "ZIP", items: [
-          { id: "zip-maker", label: "ZIP Maker", icon: "🗜" },
-          { id: "zip-extractor", label: "ZIP Extractor", icon: "📦" },
+          { id: "zip-maker", label: "ZIP Maker", icon: "🗜", live: true },
+          { id: "zip-extractor", label: "ZIP Extractor", icon: "📦", live: true },
         ]},
         { title: "Others", items: [
           { id: "barcode-generator", label: "Barcode Generator", icon: "🔳" },
-          { id: "password-generator", label: "Password Generator", icon: "🔑" },
+          { id: "password-generator", label: "Password Generator", icon: "🔑", live: true },
           { id: "image-to-color", label: "Image to Color", icon: "🎨" },
           { id: "color-extractor", label: "Color Extractor", icon: "🎨" },
         ]},
@@ -1432,17 +1701,554 @@
     showToast._t = setTimeout(() => toastEl.classList.remove("show"), 3800);
   }
 
+  // ---- tool app router --------------------------------------------------------
+  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor"];
+  function showApp(name) {
+    TOOL_APPS.forEach((n) => { const el = $("app-" + n); if (el) el.hidden = (n !== name); });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.querySelectorAll(".back-link").forEach((b) => b.addEventListener("click", () => showApp("merge")));
+
+  // ======================================================================
+  // TOOL: PDF PAGE EDITOR (Split / Organize / Rotate / Remove / Extract)
+  // ======================================================================
+  const peState = { fileName: "", arrayBuffer: null, pdfjsDoc: null, pages: [], processing: false, lastUrl: null };
+  let peIdCounter = 1;
+  const peNextId = () => "pe" + (peIdCounter++);
+  const PE_MODE_TEXT = {
+    split: ["Split PDF", "Choose which pages to keep, then split into separate PDFs (one file per page)."],
+    organize: ["Organize PDF", "Reorder, rotate or remove pages, then save as one PDF."],
+    rotate: ["Rotate PDF", "Rotate any page, then save as one PDF."],
+    remove: ["Remove PDF Pages", "Tap ✕ on the pages you don't want, then save the rest as one PDF."],
+    extract: ["Extract PDF Pages", "Remove the pages you don't need, then save the rest as one PDF."],
+  };
+
+  function peShowSection(name) {
+    ["peEmpty", "peWorkspace", "peProgress", "peResult"].forEach((id) => { $(id).hidden = (id !== name); });
+  }
+
+  function setPageEditorMode(mode) {
+    const [title, sub] = PE_MODE_TEXT[mode] || PE_MODE_TEXT.organize;
+    $("peTitle").textContent = title;
+    $("peSub").textContent = sub;
+    if (peState.lastUrl) { URL.revokeObjectURL(peState.lastUrl); peState.lastUrl = null; }
+    peState.fileName = ""; peState.arrayBuffer = null; peState.pdfjsDoc = null; peState.pages = [];
+    peShowSection("peEmpty");
+  }
+
+  async function peIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const head = new Uint8Array(buf.slice(0, 8));
+    if (sniffType(head) !== "pdf") { showToast("⚠️ Sirf PDF file chalegi is tool mein."); return; }
+    peState.fileName = file.name;
+    peState.arrayBuffer = buf;
+    peState.pages = [];
+    peShowSection("peWorkspace");
+    $("peIngestStatus").classList.add("active");
+    try {
+      const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+      peState.pdfjsDoc = doc;
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i);
+        const viewport1 = page.getViewport({ scale: 1 });
+        const thumbScale = 150 / viewport1.width;
+        const viewport = page.getViewport({ scale: thumbScale });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(viewport.width));
+        canvas.height = Math.max(1, Math.round(viewport.height));
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        peState.pages.push({
+          id: peNextId(), pageIndexInFile: i - 1, rotation: 0, deleted: false,
+          thumb: canvas.toDataURL("image/jpeg", 0.72),
+          widthPt: viewport1.width, heightPt: viewport1.height,
+        });
+      }
+    } catch (err) {
+      const isPassword = err && (err.name === "PasswordException" || /password/i.test(err.message || ""));
+      showToast(isPassword ? "🔒 Yeh PDF password-protected hai." : "⚠️ Yeh PDF nahi khul payi — corrupted ho sakti hai.");
+      peShowSection("peEmpty");
+      return;
+    } finally {
+      $("peIngestStatus").classList.remove("active");
+    }
+    peRenderList();
+  }
+
+  function peRenderList() {
+    const remaining = peState.pages.filter((p) => !p.deleted);
+    $("peCount").textContent = remaining.length ? `(${remaining.length} of ${peState.pages.length})` : "";
+    const listEl = $("peList");
+    listEl.innerHTML = "";
+    remaining.forEach((entry, visibleIdx) => {
+      const li = document.createElement("li");
+      li.className = "page-card";
+      li.dataset.pageId = entry.id;
+      li.innerHTML = `
+        <span class="order-badge">${visibleIdx + 1}</span>
+        <span class="thumb-wrap"><img src="${entry.thumb}" alt="" style="transform:rotate(${entry.rotation}deg)"></span>
+        <span class="page-meta">
+          <span class="name">Page ${entry.pageIndexInFile + 1}</span>
+          <span class="dims">${fmtMm(entry.widthPt)} × ${fmtMm(entry.heightPt)}${entry.rotation ? " · rotated " + entry.rotation + "°" : ""}</span>
+        </span>
+        <span class="page-actions">
+          <button class="icon-btn" data-action="up" ${visibleIdx === 0 ? "disabled" : ""} aria-label="Move up" title="Move up">↑</button>
+          <button class="icon-btn" data-action="down" ${visibleIdx === remaining.length - 1 ? "disabled" : ""} aria-label="Move down" title="Move down">↓</button>
+          <button class="icon-btn" data-action="rotate" aria-label="Rotate" title="Rotate">⟳</button>
+          <button class="icon-btn danger" data-action="delete" aria-label="Remove" title="Remove">✕</button>
+        </span>`;
+      listEl.appendChild(li);
+    });
+    const hasPages = remaining.length > 0;
+    $("peSaveOneBtn").disabled = !hasPages || peState.processing;
+    $("peSplitBtn").disabled = !hasPages || peState.processing;
+  }
+
+  $("peList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = e.target.closest(".page-card").dataset.pageId;
+    const idx = peState.pages.findIndex((p) => p.id === id);
+    if (idx === -1) return;
+    const action = btn.dataset.action;
+    if (action === "delete") {
+      peState.pages[idx].deleted = true;
+    } else if (action === "rotate") {
+      peState.pages[idx].rotation = (peState.pages[idx].rotation + 90) % 360;
+    } else if (action === "up" || action === "down") {
+      const dir = action === "up" ? -1 : 1;
+      let j = idx + dir;
+      while (j >= 0 && j < peState.pages.length && peState.pages[j].deleted) j += dir;
+      if (j >= 0 && j < peState.pages.length) [peState.pages[idx], peState.pages[j]] = [peState.pages[j], peState.pages[idx]];
+    }
+    peRenderList();
+  });
+
+  async function peSaveOnePdf() {
+    const remaining = peState.pages.filter((p) => !p.deleted);
+    if (!remaining.length || peState.processing) return;
+    peState.processing = true;
+    peShowSection("peProgress");
+    $("peProgressFill").style.width = "0%";
+    try {
+      const srcDoc = await PDFLib.PDFDocument.load(peState.arrayBuffer.slice(0), { ignoreEncryption: true });
+      const outDoc = await PDFLib.PDFDocument.create();
+      for (let i = 0; i < remaining.length; i++) {
+        const entry = remaining[i];
+        $("peProgressStatus").textContent = `Page ${i + 1} / ${remaining.length}`;
+        $("peProgressFill").style.width = Math.round(((i + 1) / remaining.length) * 100) + "%";
+        const [copied] = await outDoc.copyPages(srcDoc, [entry.pageIndexInFile]);
+        if (entry.rotation) {
+          const cur = copied.getRotation().angle || 0;
+          copied.setRotation(PDFLib.degrees((cur + entry.rotation) % 360));
+        }
+        outDoc.addPage(copied);
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      const bytes = await outDoc.save();
+      if (peState.lastUrl) URL.revokeObjectURL(peState.lastUrl);
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      peState.lastUrl = url;
+      $("peDownloadBtn").href = url;
+      $("peDownloadBtn").download = (peState.fileName.replace(/\.pdf$/i, "") || "edited") + "-edited.pdf";
+      $("peResultTitle").textContent = "PDF Saved";
+      $("peResultStats").innerHTML = `<strong>${remaining.length}</strong> pages · <strong>${formatBytes(bytes.byteLength)}</strong>`;
+      peShowSection("peResult");
+    } catch (err) {
+      showToast("⚠️ Kuch galat ho gaya, dobara try karo.");
+      peShowSection("peWorkspace");
+    } finally {
+      peState.processing = false;
+    }
+  }
+
+  async function peSplitPdf() {
+    const remaining = peState.pages.filter((p) => !p.deleted);
+    if (!remaining.length || peState.processing) return;
+    peState.processing = true;
+    peShowSection("peProgress");
+    $("peProgressFill").style.width = "0%";
+    try {
+      const srcDoc = await PDFLib.PDFDocument.load(peState.arrayBuffer.slice(0), { ignoreEncryption: true });
+      const outputs = [];
+      for (let i = 0; i < remaining.length; i++) {
+        const entry = remaining[i];
+        $("peProgressStatus").textContent = `Page ${i + 1} / ${remaining.length}`;
+        $("peProgressFill").style.width = Math.round(((i + 1) / remaining.length) * 100) + "%";
+        const singleDoc = await PDFLib.PDFDocument.create();
+        const [copied] = await singleDoc.copyPages(srcDoc, [entry.pageIndexInFile]);
+        if (entry.rotation) {
+          const cur = copied.getRotation().angle || 0;
+          copied.setRotation(PDFLib.degrees((cur + entry.rotation) % 360));
+        }
+        singleDoc.addPage(copied);
+        outputs.push({ name: `page-${i + 1}.pdf`, bytes: await singleDoc.save() });
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      if (peState.lastUrl) URL.revokeObjectURL(peState.lastUrl);
+      if (outputs.length === 1) {
+        const url = URL.createObjectURL(new Blob([outputs[0].bytes], { type: "application/pdf" }));
+        peState.lastUrl = url;
+        $("peDownloadBtn").href = url;
+        $("peDownloadBtn").download = outputs[0].name;
+        $("peResultTitle").textContent = "PDF Ready";
+        $("peResultStats").innerHTML = `<strong>1</strong> page · <strong>${formatBytes(outputs[0].bytes.byteLength)}</strong>`;
+      } else {
+        $("peProgressStatus").textContent = "Building ZIP…";
+        const zip = new JSZip();
+        outputs.forEach((o) => zip.file(o.name, o.bytes));
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(zipBlob);
+        peState.lastUrl = url;
+        $("peDownloadBtn").href = url;
+        $("peDownloadBtn").download = (peState.fileName.replace(/\.pdf$/i, "") || "split") + "-pages.zip";
+        $("peResultTitle").textContent = "ZIP Ready";
+        $("peResultStats").innerHTML = `<strong>${outputs.length}</strong> PDF files · <strong>${formatBytes(zipBlob.size)}</strong>`;
+      }
+      peShowSection("peResult");
+    } catch (err) {
+      showToast("⚠️ Kuch galat ho gaya, dobara try karo.");
+      peShowSection("peWorkspace");
+    } finally {
+      peState.processing = false;
+    }
+  }
+
+  $("peDropzone").addEventListener("click", () => $("peFileInput").click());
+  $("peDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("peFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("peDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("peDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("peDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("peDropzone").classList.remove("drag-over"); }));
+  $("peDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) peIngestFile(e.dataTransfer.files[0]); });
+  $("peFileInput").addEventListener("change", () => { const f = $("peFileInput").files[0]; $("peFileInput").value = ""; if (f) peIngestFile(f); });
+  $("peSaveOneBtn").addEventListener("click", peSaveOnePdf);
+  $("peSplitBtn").addEventListener("click", peSplitPdf);
+  function peReset() {
+    if (peState.lastUrl) { URL.revokeObjectURL(peState.lastUrl); peState.lastUrl = null; }
+    peState.pages = []; peState.arrayBuffer = null; peState.fileName = ""; peState.processing = false;
+    peShowSection("peEmpty");
+  }
+  $("peStartOverBtn").addEventListener("click", peReset);
+  $("peStartOverBtn2").addEventListener("click", peReset);
+  $("peBackToEditBtn").addEventListener("click", () => peShowSection("peWorkspace"));
+
+  // ======================================================================
+  // TOOL: PDF TO JPG / IMAGE
+  // ======================================================================
+  const p2iState = { fileName: "", pdfjsDoc: null, dpi: 150, results: [], lastZipUrl: null, processing: false };
+  function p2iShowSection(name) {
+    ["p2iEmpty", "p2iSettings", "p2iProgress", "p2iResult"].forEach((id) => { $(id).hidden = (id !== name); });
+  }
+  async function p2iIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const head = new Uint8Array(buf.slice(0, 8));
+    if (sniffType(head) !== "pdf") { showToast("⚠️ Sirf PDF file chalegi is tool mein."); return; }
+    try {
+      const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+      p2iState.fileName = file.name;
+      p2iState.pdfjsDoc = doc;
+      $("p2iFileInfo").textContent = `${file.name} — ${doc.numPages} page${doc.numPages === 1 ? "" : "s"}, ${formatBytes(file.size)}`;
+      p2iShowSection("p2iSettings");
+    } catch (err) {
+      showToast("⚠️ Yeh PDF nahi khul payi — corrupted ya password-protected ho sakti hai.");
+    }
+  }
+  document.querySelectorAll("#p2iQuality .preset-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#p2iQuality .preset-btn").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      p2iState.dpi = Number(b.dataset.dpi);
+    });
+  });
+  function p2iRenderResults() {
+    const totalBytes = p2iState.results.reduce((s, r) => s + r.size, 0);
+    $("p2iResultStats").innerHTML = `<strong>${p2iState.results.length}</strong> image${p2iState.results.length === 1 ? "" : "s"} · <strong>${formatBytes(totalBytes)}</strong> total`;
+    const grid = $("p2iResultGrid");
+    grid.innerHTML = "";
+    p2iState.results.forEach((r) => {
+      const url = URL.createObjectURL(new Blob([r.bytes], { type: "image/jpeg" }));
+      const tile = document.createElement("div");
+      tile.className = "result-tile";
+      tile.innerHTML = `<img src="${r.thumb}" alt=""><div class="result-tile-foot"><span>${formatBytes(r.size)}</span><a href="${url}" download="${r.name}">⬇ ${r.name}</a></div>`;
+      grid.appendChild(tile);
+    });
+  }
+  async function p2iConvert() {
+    if (!p2iState.pdfjsDoc || p2iState.processing) return;
+    p2iState.processing = true;
+    p2iShowSection("p2iProgress");
+    const doc = p2iState.pdfjsDoc;
+    const total = doc.numPages;
+    const results = [];
+    try {
+      for (let i = 1; i <= total; i++) {
+        $("p2iProgressStatus").textContent = "Rendering pages…";
+        $("p2iProgressCount").textContent = `${i} / ${total}`;
+        $("p2iProgressFill").style.width = Math.round((i / total) * 100) + "%";
+        const page = await doc.getPage(i);
+        const viewport = page.getViewport({ scale: p2iState.dpi / 72 });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(viewport.width));
+        canvas.height = Math.max(1, Math.round(viewport.height));
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        const bytes = await canvasToBytes(canvas, "image/jpeg", 0.88);
+        results.push({ name: `page-${i}.jpg`, bytes, thumb: makeThumbCanvas(canvas, 220), size: bytes.byteLength });
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      p2iState.results = results;
+      p2iRenderResults();
+      p2iShowSection("p2iResult");
+    } catch (err) {
+      showToast("⚠️ Convert karte waqt kuch galat ho gaya.");
+      p2iShowSection("p2iSettings");
+    } finally {
+      p2iState.processing = false;
+    }
+  }
+  $("p2iDownloadZipBtn").addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!p2iState.results.length) return;
+    const zip = new JSZip();
+    p2iState.results.forEach((r) => zip.file(r.name, r.bytes));
+    const blob = await zip.generateAsync({ type: "blob" });
+    if (p2iState.lastZipUrl) URL.revokeObjectURL(p2iState.lastZipUrl);
+    const url = URL.createObjectURL(blob);
+    p2iState.lastZipUrl = url;
+    const a = document.createElement("a");
+    a.href = url; a.download = (p2iState.fileName.replace(/\.pdf$/i, "") || "pdf-images") + "-images.zip";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  $("p2iDropzone").addEventListener("click", () => $("p2iFileInput").click());
+  $("p2iDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("p2iFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("p2iDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("p2iDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("p2iDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("p2iDropzone").classList.remove("drag-over"); }));
+  $("p2iDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) p2iIngestFile(e.dataTransfer.files[0]); });
+  $("p2iFileInput").addEventListener("change", () => { const f = $("p2iFileInput").files[0]; $("p2iFileInput").value = ""; if (f) p2iIngestFile(f); });
+  $("p2iConvertBtn").addEventListener("click", p2iConvert);
+  function p2iReset() {
+    p2iState.fileName = ""; p2iState.pdfjsDoc = null; p2iState.results = [];
+    p2iShowSection("p2iEmpty");
+  }
+  $("p2iStartOverBtn").addEventListener("click", p2iReset);
+  $("p2iStartOverBtn2").addEventListener("click", p2iReset);
+
+  // ======================================================================
+  // TOOL: TEXT TO PDF
+  // ======================================================================
+  const t2pState = { lastUrl: null };
+  async function t2pGenerate() {
+    const text = $("t2pTextarea").value;
+    if (!text.trim()) { showToast("⚠️ Pehle kuch text likho."); return; }
+    const fontSize = Number($("t2pFontSize").value) || 12;
+    try {
+      const doc = await PDFLib.PDFDocument.create();
+      const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+      const pageW = 595.28, pageH = 841.89, margin = 56;
+      const maxWidth = pageW - margin * 2;
+      const lineHeight = fontSize * 1.35;
+      const lines = [];
+      text.split(/\r\n|\r|\n/).forEach((raw) => {
+        if (raw === "") { lines.push(""); return; }
+        const words = raw.split(" ");
+        let line = "";
+        words.forEach((w) => {
+          const test = line ? line + " " + w : w;
+          if (font.widthOfTextAtSize(test, fontSize) > maxWidth && line) { lines.push(line); line = w; }
+          else { line = test; }
+        });
+        lines.push(line);
+      });
+      let page = doc.addPage([pageW, pageH]);
+      let y = pageH - margin;
+      for (const line of lines) {
+        if (y < margin + lineHeight) { page = doc.addPage([pageW, pageH]); y = pageH - margin; }
+        page.drawText(line, { x: margin, y: y - fontSize, size: fontSize, font, color: PDFLib.rgb(0.08, 0.13, 0.22) });
+        y -= lineHeight;
+      }
+      const bytes = await doc.save();
+      if (t2pState.lastUrl) URL.revokeObjectURL(t2pState.lastUrl);
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      t2pState.lastUrl = url;
+      $("t2pDownloadBtn").href = url;
+      $("t2pResultStats").innerHTML = `<strong>${doc.getPageCount()}</strong> page${doc.getPageCount() === 1 ? "" : "s"} · <strong>${formatBytes(bytes.byteLength)}</strong>`;
+      $("t2pForm").hidden = true;
+      $("t2pResult").hidden = false;
+    } catch (err) {
+      if (err && /encod/i.test(err.message || "")) {
+        showToast("⚠️ Yeh tool abhi sirf English/Latin characters support karta hai (Hindi ya special symbols nahi).");
+      } else {
+        showToast("⚠️ PDF banate waqt kuch galat ho gaya.");
+      }
+    }
+  }
+  $("t2pGenerateBtn").addEventListener("click", t2pGenerate);
+  $("t2pBackBtn").addEventListener("click", () => { $("t2pResult").hidden = true; $("t2pForm").hidden = false; });
+
+  // ======================================================================
+  // TOOL: PASSWORD GENERATOR
+  // ======================================================================
+  const PG_AMBIGUOUS = "l1IO0";
+  function pgGenerate() {
+    const length = Number($("pgLength").value);
+    let charset = "";
+    if ($("pgUpper").checked) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if ($("pgLower").checked) charset += "abcdefghijklmnopqrstuvwxyz";
+    if ($("pgNumbers").checked) charset += "0123456789";
+    if ($("pgSymbols").checked) charset += "!@#$%^&*()-_=+[]{};:,.?";
+    if ($("pgExcludeAmbiguous").checked) charset = charset.split("").filter((c) => !PG_AMBIGUOUS.includes(c)).join("");
+    if (!charset) { showToast("⚠️ Kam se kam ek character type chuno."); return; }
+    const rnd = new Uint32Array(length);
+    crypto.getRandomValues(rnd);
+    let out = "";
+    for (let i = 0; i < length; i++) out += charset[rnd[i] % charset.length];
+    $("pgOutput").value = out;
+  }
+  $("pgLength").addEventListener("input", () => { $("pgLengthLabel").textContent = $("pgLength").value; });
+  $("pgGenerateBtn").addEventListener("click", pgGenerate);
+  $("pgCopyBtn").addEventListener("click", () => {
+    if (!$("pgOutput").value) return;
+    navigator.clipboard.writeText($("pgOutput").value).then(() => showToast("✅ Password copy ho gaya."));
+  });
+
+  // ======================================================================
+  // TOOL: ZIP MAKER
+  // ======================================================================
+  const zmState = { files: [], lastUrl: null, processing: false };
+  let zmIdCounter = 1;
+  function zmRenderList() {
+    $("zmCount").textContent = zmState.files.length ? `(${zmState.files.length})` : "";
+    const listEl = $("zmList");
+    listEl.innerHTML = "";
+    zmState.files.forEach((f) => {
+      const li = document.createElement("li");
+      li.className = "file-row";
+      li.innerHTML = `<span class="fname">${escapeHtml(f.name)}</span><span class="fsize">${formatBytes(f.size)}</span><button class="icon-btn danger" data-id="${f.id}" aria-label="Remove">✕</button>`;
+      listEl.appendChild(li);
+    });
+    $("zmCreateBtn").disabled = zmState.files.length === 0;
+  }
+  $("zmList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-id]");
+    if (!btn) return;
+    zmState.files = zmState.files.filter((f) => f.id !== btn.dataset.id);
+    zmRenderList();
+  });
+  async function zmAddFiles(fileList) {
+    for (const f of Array.from(fileList)) {
+      const buf = await f.arrayBuffer();
+      zmState.files.push({ id: "zm" + (zmIdCounter++), name: f.name, size: f.size, arrayBuffer: buf });
+    }
+    $("zmWorkspace").hidden = false;
+    $("zmEmpty").hidden = true;
+    zmRenderList();
+  }
+  $("zmDropzone").addEventListener("click", () => $("zmFileInput").click());
+  $("zmDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("zmFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("zmDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("zmDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("zmDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("zmDropzone").classList.remove("drag-over"); }));
+  $("zmDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files.length) zmAddFiles(e.dataTransfer.files); });
+  $("zmFileInput").addEventListener("change", () => { if ($("zmFileInput").files.length) zmAddFiles($("zmFileInput").files); $("zmFileInput").value = ""; });
+  $("zmAddMoreBtn").addEventListener("click", () => $("zmFileInput").click());
+  async function zmCreateZip() {
+    if (!zmState.files.length || zmState.processing) return;
+    zmState.processing = true;
+    try {
+      const zip = new JSZip();
+      zmState.files.forEach((f) => zip.file(f.name, f.arrayBuffer));
+      const blob = await zip.generateAsync({ type: "blob" });
+      if (zmState.lastUrl) URL.revokeObjectURL(zmState.lastUrl);
+      const url = URL.createObjectURL(blob);
+      zmState.lastUrl = url;
+      const name = ($("zmArchiveName").value || "archive").replace(/[^\w\-]+/g, "_");
+      $("zmDownloadBtn").href = url;
+      $("zmDownloadBtn").download = name + ".zip";
+      $("zmResultStats").innerHTML = `<strong>${zmState.files.length}</strong> files · <strong>${formatBytes(blob.size)}</strong>`;
+      $("zmWorkspace").hidden = true;
+      $("zmResult").hidden = false;
+    } catch (err) {
+      showToast("⚠️ ZIP banate waqt kuch galat ho gaya.");
+    } finally {
+      zmState.processing = false;
+    }
+  }
+  $("zmCreateBtn").addEventListener("click", zmCreateZip);
+  function zmReset() {
+    if (zmState.lastUrl) { URL.revokeObjectURL(zmState.lastUrl); zmState.lastUrl = null; }
+    zmState.files = [];
+    $("zmEmpty").hidden = false; $("zmWorkspace").hidden = true; $("zmResult").hidden = true;
+  }
+  $("zmStartOverBtn").addEventListener("click", zmReset);
+  $("zmStartOverBtn2").addEventListener("click", zmReset);
+
+  // ======================================================================
+  // TOOL: ZIP EXTRACTOR
+  // ======================================================================
+  async function zxIngestFile(file) {
+    try {
+      const buf = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(buf);
+      const entries = [];
+      zip.forEach((relPath, entry) => {
+        if (!entry.dir) entries.push({ path: relPath.replace(/^(\.\.[/\\])+/, "").replace(/^[/\\]+/, ""), entry });
+      });
+      $("zxCount").textContent = `(${entries.length})`;
+      const listEl = $("zxList");
+      listEl.innerHTML = "";
+      for (const { path, entry } of entries) {
+        const blob = await entry.async("blob");
+        const url = URL.createObjectURL(blob);
+        const li = document.createElement("li");
+        li.className = "file-row";
+        li.innerHTML = `<span class="fname">${escapeHtml(path)}</span><span class="fsize">${formatBytes(blob.size)}</span><a class="icon-btn" href="${url}" download="${escapeHtml(path.split("/").pop())}" aria-label="Download">⬇</a>`;
+        listEl.appendChild(li);
+      }
+      $("zxEmpty").hidden = true;
+      $("zxResult").hidden = false;
+    } catch (err) {
+      showToast("⚠️ Yeh ZIP file nahi khul payi — corrupted ho sakti hai.");
+    }
+  }
+  $("zxDropzone").addEventListener("click", () => $("zxFileInput").click());
+  $("zxDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("zxFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("zxDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("zxDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("zxDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("zxDropzone").classList.remove("drag-over"); }));
+  $("zxDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) zxIngestFile(e.dataTransfer.files[0]); });
+  $("zxFileInput").addEventListener("change", () => { const f = $("zxFileInput").files[0]; $("zxFileInput").value = ""; if (f) zxIngestFile(f); });
+  $("zxStartOverBtn").addEventListener("click", () => { $("zxEmpty").hidden = false; $("zxResult").hidden = true; $("zxList").innerHTML = ""; });
+
+  // ---- tool menu routing (final) --------------------------------------------------------
+  const TOOL_APP_ROUTES = {
+    "split-pdf": ["pageEditor", "split"],
+    "organize-pdf": ["pageEditor", "organize"],
+    "rotate-pdf": ["pageEditor", "rotate"],
+    "remove-pdf-pages": ["pageEditor", "remove"],
+    "extract-pdf": ["pageEditor", "extract"],
+    "pdf-to-image": ["pdfToImage"],
+    "pdf-to-jpg": ["pdfToImage"],
+    "text-to-pdf": ["textToPdf"],
+    "password-generator": ["passwordGen"],
+    "zip-maker": ["zipMaker"],
+    "zip-extractor": ["zipExtractor"],
+  };
+
   function activateTool(toolId) {
     if (LIVE_TOOL_HINTS[toolId]) {
+      showApp("merge");
       showToolHint(LIVE_TOOL_HINTS[toolId]);
       const target = $(state.pages.length ? "workspace" : "emptyState");
       target.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (TOOL_APP_ROUTES[toolId]) {
+      const [appName, mode] = TOOL_APP_ROUTES[toolId];
+      showApp(appName);
+      if (appName === "pageEditor") setPageEditorMode(mode);
+      if (appName === "passwordGen") pgGenerate();
     } else {
-      showToast("🚧 Yeh tool jald aayega. Abhi try karo: Merge PDF, Merge PDF+Image, Compress PDF ya Image to PDF.");
+      showToast("🚧 Yeh tool jald aayega. Abhi try karo: Merge PDF, Split PDF, PDF to JPG, ya Password Generator.");
     }
   }
 
   // ---- initial render --------------------------------------------------------
+  showApp("merge");
   showView("empty");
   renderPageList();
 })();

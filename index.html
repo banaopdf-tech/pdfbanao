@@ -1698,7 +1698,7 @@
     toastEl.textContent = msg;
     toastEl.classList.add("show");
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toastEl.classList.remove("show"), 3800);
+    showToast._t = setTimeout(() => toastEl.classList.remove("show"), 6500);
   }
 
   // ---- tool app router --------------------------------------------------------
@@ -1854,7 +1854,7 @@
       $("peResultStats").innerHTML = `<strong>${remaining.length}</strong> pages · <strong>${formatBytes(bytes.byteLength)}</strong>`;
       peShowSection("peResult");
     } catch (err) {
-      showToast("⚠️ Kuch galat ho gaya, dobara try karo.");
+      showToast("⚠️ Kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + " — dobara try karo.");
       peShowSection("peWorkspace");
     } finally {
       peState.processing = false;
@@ -1906,7 +1906,7 @@
       }
       peShowSection("peResult");
     } catch (err) {
-      showToast("⚠️ Kuch galat ho gaya, dobara try karo.");
+      showToast("⚠️ Kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + " — dobara try karo.");
       peShowSection("peWorkspace");
     } finally {
       peState.processing = false;
@@ -1948,7 +1948,7 @@
       $("p2iFileInfo").textContent = `${file.name} — ${doc.numPages} page${doc.numPages === 1 ? "" : "s"}, ${formatBytes(file.size)}`;
       p2iShowSection("p2iSettings");
     } catch (err) {
-      showToast("⚠️ Yeh PDF nahi khul payi — corrupted ya password-protected ho sakti hai.");
+      showToast("⚠️ Yeh PDF nahi khul payi" + (err && err.message ? ": " + err.message : " — corrupted ya password-protected ho sakti hai."));
     }
   }
   document.querySelectorAll("#p2iQuality .preset-btn").forEach((b) => {
@@ -1999,7 +1999,7 @@
       p2iRenderResults();
       p2iShowSection("p2iResult");
     } catch (err) {
-      showToast("⚠️ Convert karte waqt kuch galat ho gaya.");
+      showToast("⚠️ Convert karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
       p2iShowSection("p2iSettings");
     } finally {
       p2iState.processing = false;
@@ -2077,7 +2077,7 @@
       if (err && /encod/i.test(err.message || "")) {
         showToast("⚠️ Yeh tool abhi sirf English/Latin characters support karta hai (Hindi ya special symbols nahi).");
       } else {
-        showToast("⚠️ PDF banate waqt kuch galat ho gaya.");
+        showToast("⚠️ PDF banate waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
       }
     }
   }
@@ -2166,7 +2166,7 @@
       $("zmWorkspace").hidden = true;
       $("zmResult").hidden = false;
     } catch (err) {
-      showToast("⚠️ ZIP banate waqt kuch galat ho gaya.");
+      showToast("⚠️ ZIP banate waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
     } finally {
       zmState.processing = false;
     }
@@ -2205,7 +2205,7 @@
       $("zxEmpty").hidden = true;
       $("zxResult").hidden = false;
     } catch (err) {
-      showToast("⚠️ Yeh ZIP file nahi khul payi — corrupted ho sakti hai.");
+      showToast("⚠️ Yeh ZIP file nahi khul payi" + (err && err.message ? ": " + err.message : " — corrupted ho sakti hai."));
     }
   }
   $("zxDropzone").addEventListener("click", () => $("zxFileInput").click());

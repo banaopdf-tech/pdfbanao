@@ -760,6 +760,71 @@
     </div>
     <!-- ============ /TOOL: ZIP EXTRACTOR ============ -->
 
+    <!-- ============ TOOL: IMAGE COMPRESSOR (Compress Image/JPG/PNG/JPEG/WEBP/BMP) ============ -->
+    <div class="tool-app" id="app-imageCompress" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" id="icTitle" style="font-size:26px;">Compress Image</h1>
+      <p class="hero-sub" id="icSub" style="margin-bottom:22px;">Shrink an image's file size — everything happens in your browser.</p>
+
+      <section id="icEmpty">
+        <div class="dropzone" id="icDropzone" tabindex="0" role="button" aria-label="Upload an image">
+          <div class="dropzone-icon" aria-hidden="true">🖼</div>
+          <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="icFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="icWorkspace" hidden>
+        <div class="panel" style="display:flex; gap:16px; padding:16px; align-items:center; max-width:640px; margin:0 auto 18px;">
+          <span class="thumb-wrap" style="width:84px;height:84px;"><img id="icPreviewImg" src="" alt="" style="width:100%;height:100%;object-fit:contain;"></span>
+          <span style="flex:1; min-width:0;">
+            <div id="icFileName" style="font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+            <div id="icFileMeta" style="font-size:12.5px; color:var(--ink-faint); margin-top:3px;"></div>
+          </span>
+        </div>
+        <aside class="panel controls" style="max-width:520px; margin:0 auto;">
+          <div class="control-block">
+            <h3>Compress (file size)</h3>
+            <div class="scale-row">
+              <input type="range" id="icScaleSlider" min="1" max="100" value="100" aria-label="Compression percentage">
+            </div>
+            <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:4px;">
+              <span class="scale-value" id="icScaleValueLabel">100%</span>
+              <span style="font-size:12px;color:var(--ink-faint);" id="icScaleOriginalNote">(original quality)</span>
+            </div>
+            <div id="icSizeEstimate" style="font-size:12.5px; color:var(--ink-faint); margin-bottom:10px;"></div>
+            <div class="scale-presets" role="group" aria-label="Compression presets">
+              <button class="preset-btn" data-preset="25" type="button">25%</button>
+              <button class="preset-btn" data-preset="50" type="button">50%</button>
+              <button class="preset-btn" data-preset="75" type="button">75%</button>
+              <button class="preset-btn active" data-preset="100" type="button">100%</button>
+            </div>
+          </div>
+          <button class="stack-btn btn-primary" id="icCompressBtn" type="button">Compress Image</button>
+          <button class="stack-btn btn-ghost btn-sm" id="icStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="icProgress" aria-live="polite" hidden>
+        <div class="progress-title">Compressing…</div>
+        <div class="progress-status" id="icProgressStatus">Working…</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="icProgressFill" style="width:35%;"></div></div>
+      </section>
+
+      <section id="icResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Image Ready</div>
+        <div class="result-stats" id="icResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="icDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="icBackToEditBtn" type="button">Back to edit</button>
+          <button class="stack-btn btn-ghost" id="icStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: IMAGE COMPRESSOR ============ -->
+
   </main>
 
   <footer>
@@ -1007,11 +1072,12 @@
 
   // Binary-search the JPEG quality that lands closest to targetBytes for an
   // already-rendered canvas. Re-encodes only (no re-render) each attempt.
-  async function fitJpegToTarget(canvas, targetBytes) {
+  async function fitJpegToTarget(canvas, targetBytes, mime) {
+    mime = mime || "image/jpeg";
     let lo = JPEG_MIN_Q, hi = JPEG_MAX_Q, best = null;
     for (let i = 0; i < QUALITY_SEARCH_STEPS; i++) {
       const q = (lo + hi) / 2;
-      const bytes = await canvasToBytes(canvas, "image/jpeg", q);
+      const bytes = await canvasToBytes(canvas, mime, q);
       if (!best || Math.abs(bytes.length - targetBytes) < Math.abs(best.length - targetBytes)) {
         best = bytes;
       }
@@ -1604,13 +1670,13 @@
     image: {
       groups: [
         { title: "Optimize Image", items: [
-          { id: "compress-image", label: "Compress Image", icon: "🗜" },
-          { id: "compress-jpg", label: "Compress JPG", icon: "🗜" },
-          { id: "compress-png", label: "Compress PNG", icon: "🗜" },
-          { id: "compress-jpeg", label: "Compress JPEG", icon: "🗜" },
-          { id: "compress-webp", label: "Compress WEBP", icon: "🗜" },
+          { id: "compress-image", label: "Compress Image", icon: "🗜", live: true },
+          { id: "compress-jpg", label: "Compress JPG", icon: "🗜", live: true },
+          { id: "compress-png", label: "Compress PNG", icon: "🗜", live: true },
+          { id: "compress-jpeg", label: "Compress JPEG", icon: "🗜", live: true },
+          { id: "compress-webp", label: "Compress WEBP", icon: "🗜", live: true },
           { id: "compress-heic", label: "Compress HEIC", icon: "🗜" },
-          { id: "compress-bmp", label: "Compress BMP", icon: "🗜" },
+          { id: "compress-bmp", label: "Compress BMP", icon: "🗜", live: true },
         ]},
         { title: "Convert Image", items: [
           { id: "image-to-jpg", label: "Image to JPG", icon: "🔄" },
@@ -1742,7 +1808,7 @@
   }
 
   // ---- tool app router --------------------------------------------------------
-  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor"];
+  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress"];
   function showApp(name) {
     TOOL_APPS.forEach((n) => { const el = $("app-" + n); if (el) el.hidden = (n !== name); });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2256,6 +2322,237 @@
   $("zxFileInput").addEventListener("change", () => { const f = $("zxFileInput").files[0]; $("zxFileInput").value = ""; if (f) zxIngestFile(f); });
   $("zxStartOverBtn").addEventListener("click", () => { $("zxEmpty").hidden = false; $("zxResult").hidden = true; $("zxList").innerHTML = ""; });
 
+  // ======================================================================
+  // TOOL: IMAGE COMPRESSOR (Compress Image / JPG / JPEG / PNG / WEBP / BMP)
+  // ======================================================================
+  const IC_MODE_TEXT = {
+    "compress-image": ["Compress Image", "Shrink any image's file size — keeps its original format."],
+    "compress-jpg": ["Compress JPG", "Shrink a photo down and save it as a JPG."],
+    "compress-jpeg": ["Compress JPEG", "Shrink a photo down and save it as a JPEG."],
+    "compress-png": ["Compress PNG", "Shrink a PNG's file size. PNG has no quality dial, so this reduces its resolution to hit the target size."],
+    "compress-webp": ["Compress WEBP", "Shrink a photo down and save it as a WEBP."],
+    "compress-bmp": ["Compress BMP", "Shrink a BMP's file size. BMP isn't compressed at all, so this reduces its resolution to hit the target size."],
+  };
+  const IC_FORCE_FORMAT = {
+    "compress-jpg": "jpeg", "compress-jpeg": "jpeg",
+    "compress-png": "png", "compress-webp": "webp", "compress-bmp": "bmp",
+  };
+  const icState = {
+    mode: "compress-image", file: null, bitmap: null, inputFormat: null, outputFormat: null,
+    originalBytes: 0, scale: 100, lastUrl: null, previewUrl: null, processing: false,
+  };
+
+  function sniffImageType(bytes) {
+    if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpeg";
+    if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
+    if (bytes.length >= 12 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "webp";
+    if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) return "bmp";
+    return null;
+  }
+  const IC_MIME = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp", bmp: "image/bmp" };
+
+  function icShowSection(name) {
+    ["icEmpty", "icWorkspace", "icProgress", "icResult"].forEach((id) => { $(id).hidden = (id !== name); });
+  }
+
+  function icUpdateEstimate() {
+    if (!icState.originalBytes) { $("icSizeEstimate").textContent = ""; return; }
+    $("icSizeEstimate").textContent = icState.scale === 100
+      ? `Output ≈ ${formatBytes(icState.originalBytes)} — original quality, nothing re-compressed`
+      : `Output ≈ ${formatBytes(icState.originalBytes * (icState.scale / 100))} (of ${formatBytes(icState.originalBytes)} original)`;
+  }
+  function icSetScale(val) {
+    val = Math.min(100, Math.max(1, Math.round(val)));
+    icState.scale = val;
+    $("icScaleSlider").value = val;
+    $("icScaleSlider").style.setProperty("--fill", val + "%");
+    $("icScaleValueLabel").textContent = val + "%";
+    $("icScaleOriginalNote").style.display = val === 100 ? "" : "none";
+    document.querySelectorAll("#app-imageCompress .preset-btn").forEach((b) => b.classList.toggle("active", Number(b.dataset.preset) === val));
+    icUpdateEstimate();
+  }
+
+  function setImageCompressMode(mode) {
+    const [title, sub] = IC_MODE_TEXT[mode] || IC_MODE_TEXT["compress-image"];
+    $("icTitle").textContent = title;
+    $("icSub").textContent = sub;
+    icState.mode = mode;
+    icState.outputFormat = IC_FORCE_FORMAT[mode] || null;
+    if (icState.lastUrl) { URL.revokeObjectURL(icState.lastUrl); icState.lastUrl = null; }
+    if (icState.previewUrl) { URL.revokeObjectURL(icState.previewUrl); icState.previewUrl = null; }
+    icState.bitmap = null; icState.file = null; icState.originalBytes = 0;
+    icShowSection("icEmpty");
+    icSetScale(100);
+  }
+
+  async function icIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const head = new Uint8Array(buf.slice(0, 16));
+    const sniffed = sniffImageType(head);
+    if (!sniffed) { showToast("⚠️ Yeh image format samajh nahi aaya (sirf JPG/PNG/WEBP/BMP chalega)."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      icState.file = file;
+      icState.originalBytes = file.size;
+      icState.inputFormat = sniffed;
+      icState.outputFormat = IC_FORCE_FORMAT[icState.mode] || sniffed;
+      icState.bitmap = bitmap;
+
+      if (icState.previewUrl) URL.revokeObjectURL(icState.previewUrl);
+      const url = URL.createObjectURL(blob);
+      icState.previewUrl = url;
+      $("icPreviewImg").src = url;
+      $("icFileName").textContent = file.name;
+      $("icFileMeta").textContent = `${bitmap.width} × ${bitmap.height}px · ${formatBytes(file.size)}`;
+
+      icShowSection("icWorkspace");
+      icSetScale(100);
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+
+  async function icFitPngToTarget(bitmap, targetBytes) {
+    let lo = 0.05, hi = 1.0, best = null;
+    for (let i = 0; i < 7; i++) {
+      const s = (lo + hi) / 2;
+      const w = Math.max(1, Math.round(bitmap.width * s));
+      const h = Math.max(1, Math.round(bitmap.height * s));
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+      const bytes = await canvasToBytes(canvas, "image/png");
+      if (!best || Math.abs(bytes.length - targetBytes) < Math.abs(best.bytes.length - targetBytes)) {
+        best = { bytes, width: w, height: h };
+      }
+      if (bytes.length > targetBytes) hi = s; else lo = s;
+    }
+    return best;
+  }
+
+  // Hand-written 24-bit uncompressed BMP encoder — canvas.toBlob() has no
+  // BMP output in any browser, so a real .bmp file has to be built by hand.
+  function icEncodeBmp(bitmap, width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, width, height).data;
+
+    const rowSize = Math.floor((24 * width + 31) / 32) * 4;
+    const pixelArraySize = rowSize * height;
+    const fileSize = 54 + pixelArraySize;
+    const buffer = new ArrayBuffer(fileSize);
+    const view = new DataView(buffer);
+
+    view.setUint8(0, 0x42); view.setUint8(1, 0x4d); // "BM"
+    view.setUint32(2, fileSize, true);
+    view.setUint32(6, 0, true);
+    view.setUint32(10, 54, true);
+
+    view.setUint32(14, 40, true);
+    view.setInt32(18, width, true);
+    view.setInt32(22, height, true); // positive height = bottom-up row order
+    view.setUint16(26, 1, true);
+    view.setUint16(28, 24, true);
+    view.setUint32(30, 0, true);
+    view.setUint32(34, pixelArraySize, true);
+    view.setInt32(38, 2835, true);
+    view.setInt32(42, 2835, true);
+    view.setUint32(46, 0, true);
+    view.setUint32(50, 0, true);
+
+    let offset = 54;
+    for (let y = height - 1; y >= 0; y--) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        view.setUint8(offset++, imgData[i + 2]); // B
+        view.setUint8(offset++, imgData[i + 1]); // G
+        view.setUint8(offset++, imgData[i]);     // R
+      }
+      for (let p = 0; p < rowSize - width * 3; p++) view.setUint8(offset++, 0);
+    }
+    return new Uint8Array(buffer);
+  }
+  function icEncodeBmpToTarget(bitmap, targetBytes) {
+    // uncompressed BMP size is a direct function of resolution, so this can
+    // be solved for directly rather than needing a binary search.
+    const origPixels = bitmap.width * bitmap.height;
+    let scale = Math.sqrt(Math.max(1, targetBytes - 54) / (origPixels * 3));
+    scale = Math.min(1, Math.max(0.02, scale));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    return { bytes: icEncodeBmp(bitmap, width, height), width, height };
+  }
+
+  async function icCompress() {
+    if (!icState.bitmap || icState.processing) return;
+    icState.processing = true;
+    icShowSection("icProgress");
+    $("icProgressStatus").textContent = "Compressing…";
+    try {
+      const targetFormat = icState.outputFormat;
+      let bytes, finalW, finalH;
+
+      if (icState.scale === 100 && targetFormat === icState.inputFormat) {
+        bytes = new Uint8Array(await icState.file.arrayBuffer()); // untouched original bytes
+        finalW = icState.bitmap.width; finalH = icState.bitmap.height;
+      } else if (targetFormat === "jpeg" || targetFormat === "webp") {
+        const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
+        const canvas = document.createElement("canvas");
+        canvas.width = icState.bitmap.width; canvas.height = icState.bitmap.height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(icState.bitmap, 0, 0);
+        bytes = await fitJpegToTarget(canvas, targetBytes, IC_MIME[targetFormat]);
+        finalW = canvas.width; finalH = canvas.height;
+      } else if (targetFormat === "png") {
+        const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
+        const result = await icFitPngToTarget(icState.bitmap, targetBytes);
+        bytes = result.bytes; finalW = result.width; finalH = result.height;
+      } else if (targetFormat === "bmp") {
+        const targetBytes = Math.max(1000, icState.originalBytes * (icState.scale / 100));
+        const result = icEncodeBmpToTarget(icState.bitmap, targetBytes);
+        bytes = result.bytes; finalW = result.width; finalH = result.height;
+      } else {
+        throw new Error("unsupported output format");
+      }
+
+      if (icState.lastUrl) URL.revokeObjectURL(icState.lastUrl);
+      const blob = new Blob([bytes], { type: IC_MIME[targetFormat] });
+      const url = URL.createObjectURL(blob);
+      icState.lastUrl = url;
+      const ext = targetFormat === "jpeg" ? "jpg" : targetFormat;
+      const baseName = (icState.file.name || "image").replace(/\.[a-zA-Z0-9]+$/, "");
+      $("icDownloadBtn").href = url;
+      $("icDownloadBtn").download = `${baseName}-compressed.${ext}`;
+      $("icResultStats").innerHTML = `${finalW}×${finalH}px · <strong>${formatBytes(bytes.length || bytes.byteLength)}</strong> <span style="color:var(--ink-faint);">(was ${formatBytes(icState.originalBytes)})</span>`;
+      icShowSection("icResult");
+    } catch (err) {
+      showToast("⚠️ Compress karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+      icShowSection("icWorkspace");
+    } finally {
+      icState.processing = false;
+    }
+  }
+
+  $("icDropzone").addEventListener("click", () => $("icFileInput").click());
+  $("icDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("icFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("icDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("icDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("icDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("icDropzone").classList.remove("drag-over"); }));
+  $("icDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) icIngestFile(e.dataTransfer.files[0]); });
+  $("icFileInput").addEventListener("change", () => { const f = $("icFileInput").files[0]; $("icFileInput").value = ""; if (f) icIngestFile(f); });
+  $("icScaleSlider").addEventListener("input", () => icSetScale($("icScaleSlider").value));
+  document.querySelectorAll("#app-imageCompress .preset-btn").forEach((b) => b.addEventListener("click", () => icSetScale(Number(b.dataset.preset))));
+  $("icCompressBtn").addEventListener("click", icCompress);
+  function icReset() { setImageCompressMode(icState.mode); }
+  $("icStartOverBtn").addEventListener("click", icReset);
+  $("icStartOverBtn2").addEventListener("click", icReset);
+  $("icBackToEditBtn").addEventListener("click", () => icShowSection("icWorkspace"));
+
+
   // ---- tool menu routing (final) --------------------------------------------------------
   const TOOL_APP_ROUTES = {
     "split-pdf": ["pageEditor", "split"],
@@ -2269,6 +2566,12 @@
     "password-generator": ["passwordGen"],
     "zip-maker": ["zipMaker"],
     "zip-extractor": ["zipExtractor"],
+    "compress-image": ["imageCompress", "compress-image"],
+    "compress-jpg": ["imageCompress", "compress-jpg"],
+    "compress-jpeg": ["imageCompress", "compress-jpeg"],
+    "compress-png": ["imageCompress", "compress-png"],
+    "compress-webp": ["imageCompress", "compress-webp"],
+    "compress-bmp": ["imageCompress", "compress-bmp"],
   };
 
   function activateTool(toolId) {
@@ -2282,6 +2585,7 @@
       showApp(appName);
       if (appName === "pageEditor") setPageEditorMode(mode);
       if (appName === "passwordGen") pgGenerate();
+      if (appName === "imageCompress") setImageCompressMode(mode);
     } else {
       showToast("🚧 Yeh tool jald aayega. Abhi try karo: Merge PDF, Split PDF, PDF to JPG, ya Password Generator.");
     }

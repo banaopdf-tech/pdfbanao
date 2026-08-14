@@ -1388,7 +1388,17 @@
               const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
 
               try {
-                // preferred path: embed the real vector page, full quality
+                // Validate first, in a disposable document: some malformed
+                // or unusually-structured PDFs only reveal a broken content
+                // stream when actually serialized (save()), not when merely
+                // embedded — so prove it out here before touching outDoc.
+                const trialDoc = await PDFLib.PDFDocument.create();
+                const trialEmbedded = await trialDoc.embedPage(srcPage);
+                const trialPage = trialDoc.addPage([rawW, rawH]);
+                trialPage.drawPage(trialEmbedded, { x: 0, y: 0, width: rawW, height: rawH });
+                await trialDoc.save();
+
+                // validated — safe to commit the same operation for real
                 const embedded = await outDoc.embedPage(srcPage);
                 const plan = planFitToA4(rawW, rawH, totalRotation);
                 const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);

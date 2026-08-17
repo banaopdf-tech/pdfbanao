@@ -1086,25 +1086,51 @@
     return best;
   }
 
+  // Some content (dense scans, busy photos) can't reach a small target by
+  // quality alone — even the lowest JPEG quality still leaves it well above
+  // budget. When that happens, back off the actual pixel resolution and
+  // retry, so the real output size can get much closer to what the
+  // Compress slider promised instead of silently landing far above target.
+  // renderAtScale(resFactor) must resolve to a canvas rendered at that
+  // fraction of full resolution (1.0 = full size).
+  async function compressWithResolutionFallback(renderAtScale, targetBytes, mime) {
+    let resScale = 1.0;
+    let best = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const canvas = await renderAtScale(resScale);
+      const bytes = await fitJpegToTarget(canvas, targetBytes, mime);
+      if (!best || Math.abs(bytes.length - targetBytes) < Math.abs(best.bytes.length - targetBytes)) {
+        best = { bytes, canvas };
+      }
+      if (bytes.length <= targetBytes * 1.25 || resScale <= 0.12) break;
+      resScale *= 0.6;
+    }
+    return best;
+  }
+
   // Draw a full-resolution image onto a white-backed canvas (JPEG has no
   // alpha), applying rotation if any. Used only on the compression path,
   // since its output is always re-encoded as JPEG regardless of source format.
-  async function renderImageForCompression(fileRecord, rotationDeg) {
+  async function renderImageForCompression(fileRecord, rotationDeg, resScale) {
+    resScale = resScale || 1;
     const blob = new Blob([fileRecord.arrayBuffer.slice(0)], { type: fileRecord.kind === "png" ? "image/png" : "image/jpeg" });
     const bitmap = await createImageBitmap(blob);
     const rad = (rotationDeg * Math.PI) / 180;
     const swap = rotationDeg === 90 || rotationDeg === 270;
-    const w = swap ? bitmap.height : bitmap.width;
-    const h = swap ? bitmap.width : bitmap.height;
+    const scaledSrcW = bitmap.width * resScale;
+    const scaledSrcH = bitmap.height * resScale;
+    const canvasW = Math.max(1, Math.round(swap ? scaledSrcH : scaledSrcW));
+    const canvasH = Math.max(1, Math.round(swap ? scaledSrcW : scaledSrcH));
     const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = canvasW;
+    canvas.height = canvasH;
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, w, h);
-    ctx.translate(w / 2, h / 2);
+    ctx.fillRect(0, 0, canvasW, canvasH);
+    ctx.translate(canvasW / 2, canvasH / 2);
     ctx.rotate(rad);
-    ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+    // draw the scaled (pre-rotation) image centered on the now-rotated origin
+    ctx.drawImage(bitmap, -scaledSrcW / 2, -scaledSrcH / 2, scaledSrcW, scaledSrcH);
     bitmap.close && bitmap.close();
     return canvas;
   }
@@ -1525,31 +1551,43 @@
               destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
             }
           } else {
-            // ---- compressed: rasterize + binary-search JPEG quality to hit the target byte budget ----
+            // ---- compressed: quality search first, then back off resolution if needed ----
             progressStatus.textContent = "Compressing & fitting to A4…";
             const budget = Math.max(8000, getPageOriginalBytes(entry) * (state.scale / 100));
-            let canvas, ptPerPx;
+            let bestResult, ptPerPx;
 
             if (entry.kind === "pdf") {
               const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
               const baseRotation = ((pjsPage.rotate || 0) % 360 + 360) % 360;
               const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
-              const renderScale = COMPRESS_DPI / 72;
-              const viewport = pjsPage.getViewport({ scale: renderScale, rotation: totalRotation });
-              canvas = document.createElement("canvas");
-              canvas.width = Math.max(1, Math.round(viewport.width));
-              canvas.height = Math.max(1, Math.round(viewport.height));
-              const ctx = canvas.getContext("2d");
-              ctx.fillStyle = "#FFFFFF";
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              await pjsPage.render({ canvasContext: ctx, viewport }).promise;
+
+              bestResult = await compressWithResolutionFallback(async (resScale) => {
+                const renderScale = (COMPRESS_DPI * resScale) / 72;
+                const viewport = pjsPage.getViewport({ scale: renderScale, rotation: totalRotation });
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(viewport.width));
+                canvas.height = Math.max(1, Math.round(viewport.height));
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                await pjsPage.render({ canvasContext: ctx, viewport }).promise;
+                return canvas;
+              }, budget);
+              // aspect ratio is unchanged regardless of which resScale was
+              // actually used (both dimensions shrink together), and the
+              // A4-fit step only cares about aspect ratio + orientation —
+              // so the original DPI constant is still the right divisor.
               ptPerPx = 72 / COMPRESS_DPI;
             } else {
-              canvas = await renderImageForCompression(fileRecord, entry.rotation);
+              bestResult = await compressWithResolutionFallback(
+                (resScale) => renderImageForCompression(fileRecord, entry.rotation, resScale),
+                budget
+              );
               ptPerPx = PT_PER_PX_AT_96DPI;
             }
 
-            const jpegBytes = await fitJpegToTarget(canvas, budget);
+            const jpegBytes = bestResult.bytes;
+            const canvas = bestResult.canvas;
             const img = await outDoc.embedJpg(jpegBytes);
             const rawW = canvas.width * ptPerPx;
             const rawH = canvas.height * ptPerPx;
@@ -2501,13 +2539,18 @@
         finalW = icState.bitmap.width; finalH = icState.bitmap.height;
       } else if (targetFormat === "jpeg" || targetFormat === "webp") {
         const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
-        const canvas = document.createElement("canvas");
-        canvas.width = icState.bitmap.width; canvas.height = icState.bitmap.height;
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(icState.bitmap, 0, 0);
-        bytes = await fitJpegToTarget(canvas, targetBytes, IC_MIME[targetFormat]);
-        finalW = canvas.width; finalH = canvas.height;
+        const result = await compressWithResolutionFallback((resScale) => {
+          const w = Math.max(1, Math.round(icState.bitmap.width * resScale));
+          const h = Math.max(1, Math.round(icState.bitmap.height * resScale));
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(icState.bitmap, 0, 0, w, h);
+          return Promise.resolve(canvas);
+        }, targetBytes, IC_MIME[targetFormat]);
+        bytes = result.bytes;
+        finalW = result.canvas.width; finalH = result.canvas.height;
       } else if (targetFormat === "png") {
         const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
         const result = await icFitPngToTarget(icState.bitmap, targetBytes);

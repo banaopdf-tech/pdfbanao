@@ -1093,17 +1093,26 @@
   // Compress slider promised instead of silently landing far above target.
   // renderAtScale(resFactor) must resolve to a canvas rendered at that
   // fraction of full resolution (1.0 = full size).
-  async function compressWithResolutionFallback(renderAtScale, targetBytes, mime) {
-    let resScale = 1.0;
-    let best = null;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const canvas = await renderAtScale(resScale);
-      const bytes = await fitJpegToTarget(canvas, targetBytes, mime);
-      if (!best || Math.abs(bytes.length - targetBytes) < Math.abs(best.bytes.length - targetBytes)) {
-        best = { bytes, canvas };
+  async function compressWithResolutionFallback(renderAtScale, targetBytes, mime, allowResolutionDrop) {
+    const fullCanvas = await renderAtScale(1.0);
+    let best = { bytes: await fitJpegToTarget(fullCanvas, targetBytes, mime), canvas: fullCanvas, resScale: 1.0 };
+
+    // Below the 25% compress mark, quality alone usually can't reach the
+    // target for busy/detailed content — only then start trading resolution
+    // for size too. Above 25%, resolution is left untouched so text/scans
+    // stay sharp, even if that means landing a bit above the target size.
+    if (allowResolutionDrop && best.bytes.length > targetBytes * 1.25) {
+      let resScale = 1.0;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        resScale *= 0.6;
+        if (resScale <= 0.12) break;
+        const canvas = await renderAtScale(resScale);
+        const bytes = await fitJpegToTarget(canvas, targetBytes, mime);
+        if (Math.abs(bytes.length - targetBytes) < Math.abs(best.bytes.length - targetBytes)) {
+          best = { bytes, canvas, resScale };
+        }
+        if (bytes.length <= targetBytes * 1.25) break;
       }
-      if (bytes.length <= targetBytes * 1.25 || resScale <= 0.12) break;
-      resScale *= 0.6;
     }
     return best;
   }
@@ -1572,7 +1581,7 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 await pjsPage.render({ canvasContext: ctx, viewport }).promise;
                 return canvas;
-              }, budget);
+              }, budget, undefined, state.scale < 25);
               // aspect ratio is unchanged regardless of which resScale was
               // actually used (both dimensions shrink together), and the
               // A4-fit step only cares about aspect ratio + orientation —
@@ -1581,7 +1590,7 @@
             } else {
               bestResult = await compressWithResolutionFallback(
                 (resScale) => renderImageForCompression(fileRecord, entry.rotation, resScale),
-                budget
+                budget, undefined, state.scale < 25
               );
               ptPerPx = PT_PER_PX_AT_96DPI;
             }
@@ -2548,7 +2557,7 @@
           ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, w, h);
           ctx.drawImage(icState.bitmap, 0, 0, w, h);
           return Promise.resolve(canvas);
-        }, targetBytes, IC_MIME[targetFormat]);
+        }, targetBytes, IC_MIME[targetFormat], icState.scale < 25);
         bytes = result.bytes;
         finalW = result.canvas.width; finalH = result.canvas.height;
       } else if (targetFormat === "png") {

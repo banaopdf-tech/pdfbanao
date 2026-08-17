@@ -1772,11 +1772,11 @@
           { id: "compress-bmp", label: "Compress BMP", icon: "🗜", live: true },
         ]},
         { title: "Convert Image", items: [
-          { id: "image-to-jpg", label: "Image to JPG", icon: "🔄" },
-          { id: "image-to-png", label: "Image to PNG", icon: "🔄" },
-          { id: "image-to-jpeg", label: "Image to JPEG", icon: "🔄" },
-          { id: "image-to-webp", label: "Image to WEBP", icon: "🔄" },
-          { id: "webp-to-jpeg", label: "WEBP to JPEG", icon: "🔄" },
+          { id: "image-to-jpg", label: "Image to JPG", icon: "🔄", live: true },
+          { id: "image-to-png", label: "Image to PNG", icon: "🔄", live: true },
+          { id: "image-to-jpeg", label: "Image to JPEG", icon: "🔄", live: true },
+          { id: "image-to-webp", label: "Image to WEBP", icon: "🔄", live: true },
+          { id: "webp-to-jpeg", label: "WEBP to JPEG", icon: "🔄", live: true },
           { id: "heic-to-jpeg", label: "HEIC to JPEG", icon: "🔄" },
         ]},
         { title: "Edit Image", items: [
@@ -2425,10 +2425,17 @@
     "compress-png": ["Compress PNG", "Shrink a PNG's file size. PNG has no quality dial, so this reduces its resolution to hit the target size."],
     "compress-webp": ["Compress WEBP", "Shrink a photo down and save it as a WEBP."],
     "compress-bmp": ["Compress BMP", "Shrink a BMP's file size. BMP isn't compressed at all, so this reduces its resolution to hit the target size."],
+    "image-to-jpg": ["Image to JPG", "Convert any image to JPG — original size by default, or compress it with the slider below."],
+    "image-to-jpeg": ["Image to JPEG", "Convert any image to JPEG — original size by default, or compress it with the slider below."],
+    "image-to-png": ["Image to PNG", "Convert any image to PNG — original size by default, or shrink it with the slider below."],
+    "image-to-webp": ["Image to WEBP", "Convert any image to WEBP — original size by default, or compress it with the slider below."],
+    "webp-to-jpeg": ["WEBP to JPEG", "Convert a WEBP image to JPEG — original size by default, or compress it with the slider below."],
   };
   const IC_FORCE_FORMAT = {
     "compress-jpg": "jpeg", "compress-jpeg": "jpeg",
     "compress-png": "png", "compress-webp": "webp", "compress-bmp": "bmp",
+    "image-to-jpg": "jpeg", "image-to-jpeg": "jpeg", "image-to-png": "png",
+    "image-to-webp": "webp", "webp-to-jpeg": "jpeg",
   };
   const icState = {
     mode: "compress-image", file: null, bitmap: null, inputFormat: null, outputFormat: null,
@@ -2466,10 +2473,16 @@
     icUpdateEstimate();
   }
 
+  const IC_ACTION_LABEL = {
+    "image-to-jpg": "Convert to JPG", "image-to-jpeg": "Convert to JPEG",
+    "image-to-png": "Convert to PNG", "image-to-webp": "Convert to WEBP",
+    "webp-to-jpeg": "Convert to JPEG",
+  };
   function setImageCompressMode(mode) {
     const [title, sub] = IC_MODE_TEXT[mode] || IC_MODE_TEXT["compress-image"];
     $("icTitle").textContent = title;
     $("icSub").textContent = sub;
+    $("icCompressBtn").textContent = IC_ACTION_LABEL[mode] || "Compress Image";
     icState.mode = mode;
     icState.outputFormat = IC_FORCE_FORMAT[mode] || null;
     if (icState.lastUrl) { URL.revokeObjectURL(icState.lastUrl); icState.lastUrl = null; }
@@ -2682,6 +2695,11 @@
     "compress-png": ["imageCompress", "compress-png"],
     "compress-webp": ["imageCompress", "compress-webp"],
     "compress-bmp": ["imageCompress", "compress-bmp"],
+    "image-to-jpg": ["imageCompress", "image-to-jpg"],
+    "image-to-jpeg": ["imageCompress", "image-to-jpeg"],
+    "image-to-png": ["imageCompress", "image-to-png"],
+    "image-to-webp": ["imageCompress", "image-to-webp"],
+    "webp-to-jpeg": ["imageCompress", "webp-to-jpeg"],
   };
 
   function activateTool(toolId) {

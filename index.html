@@ -1144,6 +1144,48 @@
     return canvas;
   }
 
+  // Embed a source PDF page as real vector content onto a fresh A4-fit page
+  // in outDoc. Validates first in a disposable document (some malformed/
+  // unusual PDFs only reveal a broken stream at save() time, not at
+  // embed() time) — throws if the page genuinely can't be embedded, so
+  // callers can decide how to fall back.
+  async function addVectorPdfPage(outDoc, srcPage, rawW, rawH, totalRotation) {
+    const trialDoc = await PDFLib.PDFDocument.create();
+    const trialEmbedded = await trialDoc.embedPage(srcPage);
+    const trialPage = trialDoc.addPage([rawW, rawH]);
+    trialPage.drawPage(trialEmbedded, { x: 0, y: 0, width: rawW, height: rawH });
+    await trialDoc.save();
+
+    const embedded = await outDoc.embedPage(srcPage);
+    const plan = planFitToA4(rawW, rawH, totalRotation);
+    const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+    destPage.drawPage(embedded, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+    if (totalRotation) destPage.setRotation(PDFLib.degrees(totalRotation));
+  }
+
+  // Last-resort path for a PDF page that can't be embedded as vector at
+  // all (unusual structure/encryption) — rasterize it at high quality
+  // rather than dropping it from the merge.
+  async function addRasterizedPdfPageHQ(outDoc, fileRecord, pageIndexInFile, totalRotation) {
+    const pjsPage = await fileRecord.pdfjsDoc.getPage(pageIndexInFile + 1);
+    const fbScale = 200 / 72;
+    const viewport = pjsPage.getViewport({ scale: fbScale, rotation: totalRotation });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(viewport.width));
+    canvas.height = Math.max(1, Math.round(viewport.height));
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await pjsPage.render({ canvasContext: ctx, viewport }).promise;
+    const bytes = await canvasToBytes(canvas, "image/jpeg", 0.92);
+    const img = await outDoc.embedJpg(bytes);
+    const rawW = canvas.width * (72 / 200);
+    const rawH = canvas.height * (72 / 200);
+    const plan = planFitToA4(rawW, rawH, 0);
+    const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+    destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+  }
+
   // ---- view switching --------------------------------------------------------
   function showView(view) {
     emptyState.style.display = view === "empty" ? "" : "none";
@@ -1489,43 +1531,11 @@
               const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
 
               try {
-                // Validate first, in a disposable document: some malformed
-                // or unusually-structured PDFs only reveal a broken content
-                // stream when actually serialized (save()), not when merely
-                // embedded — so prove it out here before touching outDoc.
-                const trialDoc = await PDFLib.PDFDocument.create();
-                const trialEmbedded = await trialDoc.embedPage(srcPage);
-                const trialPage = trialDoc.addPage([rawW, rawH]);
-                trialPage.drawPage(trialEmbedded, { x: 0, y: 0, width: rawW, height: rawH });
-                await trialDoc.save();
-
-                // validated — safe to commit the same operation for real
-                const embedded = await outDoc.embedPage(srcPage);
-                const plan = planFitToA4(rawW, rawH, totalRotation);
-                const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
-                destPage.drawPage(embedded, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
-                if (totalRotation) destPage.setRotation(PDFLib.degrees(totalRotation));
+                await addVectorPdfPage(outDoc, srcPage, rawW, rawH, totalRotation);
               } catch (vectorErr) {
-                // fallback: some PDFs (unusual structure/encryption) can't be
-                // embedded as a vector page — rasterize that page at high
-                // quality instead of dropping it from the merge entirely.
-                const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
-                const fbScale = 200 / 72;
-                const fbViewport = pjsPage.getViewport({ scale: fbScale, rotation: totalRotation });
-                const fbCanvas = document.createElement("canvas");
-                fbCanvas.width = Math.max(1, Math.round(fbViewport.width));
-                fbCanvas.height = Math.max(1, Math.round(fbViewport.height));
-                const fbCtx = fbCanvas.getContext("2d");
-                fbCtx.fillStyle = "#FFFFFF";
-                fbCtx.fillRect(0, 0, fbCanvas.width, fbCanvas.height);
-                await pjsPage.render({ canvasContext: fbCtx, viewport: fbViewport }).promise;
-                const fbBytes = await canvasToBytes(fbCanvas, "image/jpeg", 0.92);
-                const fbImg = await outDoc.embedJpg(fbBytes);
-                const fbRawW = fbCanvas.width * (72 / 200);
-                const fbRawH = fbCanvas.height * (72 / 200);
-                const fbPlan = planFitToA4(fbRawW, fbRawH, 0); // rotation already baked into the render above
-                const fbDestPage = outDoc.addPage([fbPlan.rawTargetW, fbPlan.rawTargetH]);
-                fbDestPage.drawImage(fbImg, { x: fbPlan.drawX, y: fbPlan.drawY, width: fbPlan.drawW, height: fbPlan.drawH });
+                // some PDFs (unusual structure/encryption) can't be embedded
+                // as vector — rasterize at high quality rather than dropping.
+                await addRasterizedPdfPageHQ(outDoc, fileRecord, entry.pageIndexInFile, totalRotation);
               }
             } else {
               let bytes;
@@ -1560,17 +1570,28 @@
               destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
             }
           } else {
-            // ---- compressed: quality search first, then back off resolution if needed ----
+            // ---- compressed: quality (and, below 25%, resolution) search first —
+            // but a rasterized JPEG can end up BIGGER than an efficient vector/
+            // text PDF page, so only keep the compressed result if it's actually
+            // smaller than the original; otherwise fall back to the real page.
             progressStatus.textContent = "Compressing & fitting to A4…";
             const budget = Math.max(8000, getPageOriginalBytes(entry) * (state.scale / 100));
-            let bestResult, ptPerPx;
+            const originalShare = getPageOriginalBytes(entry);
 
             if (entry.kind === "pdf") {
-              const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
-              const baseRotation = ((pjsPage.rotate || 0) % 360 + 360) % 360;
+              let srcDoc = pdfLibDocCache.get(entry.fileId);
+              if (!srcDoc) {
+                srcDoc = await PDFLib.PDFDocument.load(fileRecord.arrayBuffer.slice(0), { ignoreEncryption: true });
+                pdfLibDocCache.set(entry.fileId, srcDoc);
+              }
+              const srcPage = srcDoc.getPage(entry.pageIndexInFile);
+              const { width: rawW, height: rawH } = srcPage.getSize();
+              const rawAngle = srcPage.getRotation().angle || 0;
+              const baseRotation = ((rawAngle % 360) + 360) % 360;
               const totalRotation = ((baseRotation + entry.rotation) % 360 + 360) % 360;
 
-              bestResult = await compressWithResolutionFallback(async (resScale) => {
+              const pjsPage = await fileRecord.pdfjsDoc.getPage(entry.pageIndexInFile + 1);
+              const bestResult = await compressWithResolutionFallback(async (resScale) => {
                 const renderScale = (COMPRESS_DPI * resScale) / 72;
                 const viewport = pjsPage.getViewport({ scale: renderScale, rotation: totalRotation });
                 const canvas = document.createElement("canvas");
@@ -1582,28 +1603,53 @@
                 await pjsPage.render({ canvasContext: ctx, viewport }).promise;
                 return canvas;
               }, budget, undefined, state.scale < 25);
-              // aspect ratio is unchanged regardless of which resScale was
-              // actually used (both dimensions shrink together), and the
-              // A4-fit step only cares about aspect ratio + orientation —
-              // so the original DPI constant is still the right divisor.
-              ptPerPx = 72 / COMPRESS_DPI;
+
+              if (bestResult.bytes.length < originalShare) {
+                const img = await outDoc.embedJpg(bestResult.bytes);
+                const cRawW = bestResult.canvas.width * (72 / COMPRESS_DPI);
+                const cRawH = bestResult.canvas.height * (72 / COMPRESS_DPI);
+                const plan = planFitToA4(cRawW, cRawH, 0); // rotation already baked into the render above
+                const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+                destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+              } else {
+                // compressing made it bigger (common for text-heavy/vector
+                // PDFs) — the real page is already smaller, so use that.
+                try {
+                  await addVectorPdfPage(outDoc, srcPage, rawW, rawH, totalRotation);
+                } catch (vectorErr) {
+                  // last resort: use the compressed raster we already made
+                  const img = await outDoc.embedJpg(bestResult.bytes);
+                  const cRawW = bestResult.canvas.width * (72 / COMPRESS_DPI);
+                  const cRawH = bestResult.canvas.height * (72 / COMPRESS_DPI);
+                  const plan = planFitToA4(cRawW, cRawH, 0);
+                  const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+                  destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
+                }
+              }
             } else {
-              bestResult = await compressWithResolutionFallback(
+              const bestResult = await compressWithResolutionFallback(
                 (resScale) => renderImageForCompression(fileRecord, entry.rotation, resScale),
                 budget, undefined, state.scale < 25
               );
-              ptPerPx = PT_PER_PX_AT_96DPI;
+
+              let finalBytes, finalMime, rawW, rawH;
+              const compressionHelped = bestResult.bytes.length < originalShare;
+              if (!entry.rotation && !compressionHelped) {
+                // compressing didn't actually shrink it — original bytes win
+                finalBytes = new Uint8Array(fileRecord.arrayBuffer.slice(0));
+                finalMime = entry.kind === "png" ? "image/png" : "image/jpeg";
+                rawW = entry.widthPt; rawH = entry.heightPt;
+              } else {
+                finalBytes = bestResult.bytes;
+                finalMime = "image/jpeg";
+                rawW = bestResult.canvas.width * PT_PER_PX_AT_96DPI;
+                rawH = bestResult.canvas.height * PT_PER_PX_AT_96DPI;
+              }
+              const img = finalMime === "image/png" ? await outDoc.embedPng(finalBytes) : await outDoc.embedJpg(finalBytes);
+              const plan = planFitToA4(rawW, rawH, 0);
+              const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
+              destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
             }
-
-            const jpegBytes = bestResult.bytes;
-            const canvas = bestResult.canvas;
-            const img = await outDoc.embedJpg(jpegBytes);
-            const rawW = canvas.width * ptPerPx;
-            const rawH = canvas.height * ptPerPx;
-            const plan = planFitToA4(rawW, rawH, 0); // rotation already baked into the render/canvas above
-
-            const destPage = outDoc.addPage([plan.rawTargetW, plan.rawTargetH]);
-            destPage.drawImage(img, { x: plan.drawX, y: plan.drawY, width: plan.drawW, height: plan.drawH });
           }
         } catch (err) {
           skipped++;
@@ -2558,12 +2604,24 @@
           ctx.drawImage(icState.bitmap, 0, 0, w, h);
           return Promise.resolve(canvas);
         }, targetBytes, IC_MIME[targetFormat], icState.scale < 25);
-        bytes = result.bytes;
-        finalW = result.canvas.width; finalH = result.canvas.height;
+
+        if (targetFormat === icState.inputFormat && result.bytes.length >= icState.originalBytes) {
+          // compressing didn't actually help — the original file is already smaller/equal
+          bytes = new Uint8Array(await icState.file.arrayBuffer());
+          finalW = icState.bitmap.width; finalH = icState.bitmap.height;
+        } else {
+          bytes = result.bytes;
+          finalW = result.canvas.width; finalH = result.canvas.height;
+        }
       } else if (targetFormat === "png") {
         const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
         const result = await icFitPngToTarget(icState.bitmap, targetBytes);
-        bytes = result.bytes; finalW = result.width; finalH = result.height;
+        if (targetFormat === icState.inputFormat && result.bytes.length >= icState.originalBytes) {
+          bytes = new Uint8Array(await icState.file.arrayBuffer());
+          finalW = icState.bitmap.width; finalH = icState.bitmap.height;
+        } else {
+          bytes = result.bytes; finalW = result.width; finalH = result.height;
+        }
       } else if (targetFormat === "bmp") {
         const targetBytes = Math.max(1000, icState.originalBytes * (icState.scale / 100));
         const result = icEncodeBmpToTarget(icState.bitmap, targetBytes);

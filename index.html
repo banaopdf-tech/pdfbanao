@@ -770,9 +770,9 @@
         <div class="dropzone" id="icDropzone" tabindex="0" role="button" aria-label="Upload an image">
           <div class="dropzone-icon" aria-hidden="true">🖼</div>
           <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
-          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP · HEIC</div>
         </div>
-        <input type="file" id="icFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+        <input type="file" id="icFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp,.heic">
       </section>
 
       <section id="icWorkspace" hidden>
@@ -837,6 +837,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.1/index.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1768,7 +1769,7 @@
           { id: "compress-png", label: "Compress PNG", icon: "🗜", live: true },
           { id: "compress-jpeg", label: "Compress JPEG", icon: "🗜", live: true },
           { id: "compress-webp", label: "Compress WEBP", icon: "🗜", live: true },
-          { id: "compress-heic", label: "Compress HEIC", icon: "🗜" },
+          { id: "compress-heic", label: "Compress HEIC", icon: "🗜", live: true },
           { id: "compress-bmp", label: "Compress BMP", icon: "🗜", live: true },
         ]},
         { title: "Convert Image", items: [
@@ -1777,7 +1778,7 @@
           { id: "image-to-jpeg", label: "Image to JPEG", icon: "🔄", live: true },
           { id: "image-to-webp", label: "Image to WEBP", icon: "🔄", live: true },
           { id: "webp-to-jpeg", label: "WEBP to JPEG", icon: "🔄", live: true },
-          { id: "heic-to-jpeg", label: "HEIC to JPEG", icon: "🔄" },
+          { id: "heic-to-jpeg", label: "HEIC to JPEG", icon: "🔄", live: true },
         ]},
         { title: "Edit Image", items: [
           { id: "image-crop", label: "Image Crop", icon: "✂️" },
@@ -2430,16 +2431,19 @@
     "image-to-png": ["Image to PNG", "Convert any image to PNG — original size by default, or shrink it with the slider below."],
     "image-to-webp": ["Image to WEBP", "Convert any image to WEBP — original size by default, or compress it with the slider below."],
     "webp-to-jpeg": ["WEBP to JPEG", "Convert a WEBP image to JPEG — original size by default, or compress it with the slider below."],
+    "compress-heic": ["Compress HEIC", "Browsers can't write HEIC files, so this converts your HEIC photo to a JPEG — original size by default, or compress it with the slider below."],
+    "heic-to-jpeg": ["HEIC to JPEG", "Convert an iPhone HEIC photo to JPEG — original size by default, or compress it with the slider below."],
   };
   const IC_FORCE_FORMAT = {
     "compress-jpg": "jpeg", "compress-jpeg": "jpeg",
     "compress-png": "png", "compress-webp": "webp", "compress-bmp": "bmp",
     "image-to-jpg": "jpeg", "image-to-jpeg": "jpeg", "image-to-png": "png",
-    "image-to-webp": "webp", "webp-to-jpeg": "jpeg",
+    "image-to-webp": "webp", "webp-to-jpeg": "jpeg", "compress-heic": "jpeg", "heic-to-jpeg": "jpeg",
   };
   const icState = {
     mode: "compress-image", file: null, bitmap: null, inputFormat: null, outputFormat: null,
     originalBytes: 0, scale: 100, lastUrl: null, previewUrl: null, processing: false,
+    workingBlob: null, wasConverted: false,
   };
 
   function sniffImageType(bytes) {
@@ -2447,10 +2451,15 @@
     if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
     if (bytes.length >= 12 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
         bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "webp";
+    if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+      // ISO base media "ftyp" box — check the brand for a HEIC/HEIF variant
+      const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
+      if (["heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "msf1"].includes(brand)) return "heic";
+    }
     if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) return "bmp";
     return null;
   }
-  const IC_MIME = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp", bmp: "image/bmp" };
+  const IC_MIME = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp", bmp: "image/bmp", heic: "image/heic" };
 
   function icShowSection(name) {
     ["icEmpty", "icWorkspace", "icProgress", "icResult"].forEach((id) => { $(id).hidden = (id !== name); });
@@ -2476,7 +2485,7 @@
   const IC_ACTION_LABEL = {
     "image-to-jpg": "Convert to JPG", "image-to-jpeg": "Convert to JPEG",
     "image-to-png": "Convert to PNG", "image-to-webp": "Convert to WEBP",
-    "webp-to-jpeg": "Convert to JPEG",
+    "webp-to-jpeg": "Convert to JPEG", "compress-heic": "Convert to JPEG", "heic-to-jpeg": "Convert to JPEG",
   };
   function setImageCompressMode(mode) {
     const [title, sub] = IC_MODE_TEXT[mode] || IC_MODE_TEXT["compress-image"];
@@ -2496,27 +2505,48 @@
     const buf = await file.arrayBuffer();
     const head = new Uint8Array(buf.slice(0, 16));
     const sniffed = sniffImageType(head);
-    if (!sniffed) { showToast("⚠️ Yeh image format samajh nahi aaya (sirf JPG/PNG/WEBP/BMP chalega)."); return; }
+    if (!sniffed) { showToast("⚠️ Yeh image format samajh nahi aaya (JPG/PNG/WEBP/BMP/HEIC chalega)."); return; }
+    icState.wasConverted = false;
     try {
-      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
-      const bitmap = await createImageBitmap(blob);
+      let workingBlob = new Blob([buf], { type: IC_MIME[sniffed] });
+      let effectiveFormat = sniffed;
+
+      if (sniffed === "heic") {
+        if (typeof window.heic2any === "undefined") {
+          showToast("⚠️ HEIC converter load nahi ho paya — internet check karke page reload karo.");
+          return;
+        }
+        $("icDropzone").querySelector(".dropzone-primary").textContent = "Converting HEIC…";
+        const converted = await window.heic2any({ blob: workingBlob, toType: "image/jpeg", quality: 0.92 });
+        workingBlob = Array.isArray(converted) ? converted[0] : converted; // multi-image HEIC containers return an array
+        effectiveFormat = "jpeg";
+        icState.wasConverted = true;
+      }
+
+      const bitmap = await createImageBitmap(workingBlob);
       icState.file = file;
-      icState.originalBytes = file.size;
-      icState.inputFormat = sniffed;
-      icState.outputFormat = IC_FORCE_FORMAT[icState.mode] || sniffed;
+      icState.workingBlob = workingBlob; // post-HEIC-decode bytes, if any conversion happened
+      icState.originalBytes = file.size; // size as uploaded (HEIC size, if that's what it was)
+      icState.inputFormat = effectiveFormat;
+      icState.outputFormat = IC_FORCE_FORMAT[icState.mode] || effectiveFormat;
       icState.bitmap = bitmap;
 
       if (icState.previewUrl) URL.revokeObjectURL(icState.previewUrl);
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(workingBlob);
       icState.previewUrl = url;
       $("icPreviewImg").src = url;
       $("icFileName").textContent = file.name;
-      $("icFileMeta").textContent = `${bitmap.width} × ${bitmap.height}px · ${formatBytes(file.size)}`;
+      $("icFileMeta").textContent = `${bitmap.width} × ${bitmap.height}px · ${formatBytes(file.size)}` + (sniffed === "heic" ? " (HEIC, will convert to JPEG)" : "");
 
       icShowSection("icWorkspace");
       icSetScale(100);
     } catch (err) {
       showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    } finally {
+      const primaryEl = $("icDropzone").querySelector(".dropzone-primary");
+      if (primaryEl && primaryEl.textContent === "Converting HEIC…") {
+        primaryEl.innerHTML = 'Drop an image here or <span class="link">browse files</span>';
+      }
     }
   }
 
@@ -2602,8 +2632,12 @@
       const targetFormat = icState.outputFormat;
       let bytes, finalW, finalH;
 
-      if (icState.scale === 100 && targetFormat === icState.inputFormat) {
+      if (icState.scale === 100 && targetFormat === icState.inputFormat && !icState.wasConverted) {
         bytes = new Uint8Array(await icState.file.arrayBuffer()); // untouched original bytes
+        finalW = icState.bitmap.width; finalH = icState.bitmap.height;
+      } else if (icState.scale === 100 && targetFormat === icState.inputFormat && icState.wasConverted) {
+        // e.g. HEIC decoded to JPEG — "original" bytes are the decoded JPEG, not the source HEIC
+        bytes = new Uint8Array(await icState.workingBlob.arrayBuffer());
         finalW = icState.bitmap.width; finalH = icState.bitmap.height;
       } else if (targetFormat === "jpeg" || targetFormat === "webp") {
         const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
@@ -2618,7 +2652,7 @@
           return Promise.resolve(canvas);
         }, targetBytes, IC_MIME[targetFormat], icState.scale < 25);
 
-        if (targetFormat === icState.inputFormat && result.bytes.length >= icState.originalBytes) {
+        if (targetFormat === icState.inputFormat && !icState.wasConverted && result.bytes.length >= icState.originalBytes) {
           // compressing didn't actually help — the original file is already smaller/equal
           bytes = new Uint8Array(await icState.file.arrayBuffer());
           finalW = icState.bitmap.width; finalH = icState.bitmap.height;
@@ -2629,7 +2663,7 @@
       } else if (targetFormat === "png") {
         const targetBytes = Math.max(4000, icState.originalBytes * (icState.scale / 100));
         const result = await icFitPngToTarget(icState.bitmap, targetBytes);
-        if (targetFormat === icState.inputFormat && result.bytes.length >= icState.originalBytes) {
+        if (targetFormat === icState.inputFormat && !icState.wasConverted && result.bytes.length >= icState.originalBytes) {
           bytes = new Uint8Array(await icState.file.arrayBuffer());
           finalW = icState.bitmap.width; finalH = icState.bitmap.height;
         } else {
@@ -2700,6 +2734,8 @@
     "image-to-png": ["imageCompress", "image-to-png"],
     "image-to-webp": ["imageCompress", "image-to-webp"],
     "webp-to-jpeg": ["imageCompress", "webp-to-jpeg"],
+    "compress-heic": ["imageCompress", "compress-heic"],
+    "heic-to-jpeg": ["imageCompress", "heic-to-jpeg"],
   };
 
   function activateTool(toolId) {

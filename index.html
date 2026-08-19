@@ -825,6 +825,225 @@
     </div>
     <!-- ============ /TOOL: IMAGE COMPRESSOR ============ -->
 
+    <!-- ============ TOOL: IMAGE RESIZE ============ -->
+    <div class="tool-app" id="app-imageResize" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Image Resize</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Change an image's dimensions — full quality kept.</p>
+
+      <section id="irEmpty">
+        <div class="dropzone" id="irDropzone" tabindex="0" role="button" aria-label="Upload an image">
+          <div class="dropzone-icon" aria-hidden="true">📐</div>
+          <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="irFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="irWorkspace" hidden>
+        <div class="panel" style="max-width:520px; margin:0 auto 18px; padding:16px; text-align:center;">
+          <img id="irPreviewImg" alt="" style="max-width:100%; max-height:260px; border-radius:var(--radius-m);">
+          <div id="irOriginalMeta" style="font-size:12.5px; color:var(--ink-faint); margin-top:10px;"></div>
+        </div>
+        <aside class="panel controls" style="max-width:460px; margin:0 auto;">
+          <div class="control-block">
+            <h3>New dimensions</h3>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+              <input type="number" id="irWidth" min="1" style="width:100px; padding:9px; border-radius:var(--radius-s); border:1px solid var(--line); font-size:14px;">
+              <span style="color:var(--ink-faint);">×</span>
+              <input type="number" id="irHeight" min="1" style="width:100px; padding:9px; border-radius:var(--radius-s); border:1px solid var(--line); font-size:14px;">
+              <span style="font-size:12px; color:var(--ink-faint);">px</span>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:16px;">
+              <input type="checkbox" id="irLockAspect" checked> Lock aspect ratio
+            </label>
+            <div class="scale-presets" role="group" aria-label="Resize presets">
+              <button class="preset-btn" data-preset="25" type="button">25%</button>
+              <button class="preset-btn" data-preset="50" type="button">50%</button>
+              <button class="preset-btn" data-preset="75" type="button">75%</button>
+              <button class="preset-btn active" data-preset="100" type="button">100%</button>
+            </div>
+          </div>
+          <button class="stack-btn btn-primary" id="irResizeBtn" type="button">Resize Image</button>
+          <button class="stack-btn btn-ghost btn-sm" id="irStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="irResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Image Resized</div>
+        <div class="result-stats" id="irResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="irDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="irStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: IMAGE RESIZE ============ -->
+
+    <!-- ============ TOOL: IMAGE ROTATE ============ -->
+    <div class="tool-app" id="app-imageRotate" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Image Rotate</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Rotate a photo — full quality kept.</p>
+
+      <section id="ttEmpty">
+        <div class="dropzone" id="ttDropzone" tabindex="0" role="button" aria-label="Upload an image">
+          <div class="dropzone-icon" aria-hidden="true">🔃</div>
+          <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="ttFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="ttWorkspace" hidden>
+        <div class="panel" style="max-width:480px; margin:0 auto 18px; padding:20px; text-align:center;">
+          <img id="ttPreviewImg" alt="" style="max-width:100%; max-height:300px; border-radius:var(--radius-m); transition:transform .15s ease;">
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center; max-width:460px; margin:0 auto 18px;">
+          <button class="icon-btn" id="ttRotateCcwBtn" style="width:52px;height:52px;font-size:20px;" aria-label="Rotate counter-clockwise" title="Rotate left">⟲</button>
+          <button class="icon-btn" id="ttRotateCwBtn" style="width:52px;height:52px;font-size:20px;" aria-label="Rotate clockwise" title="Rotate right">⟳</button>
+          <button class="stack-btn btn-ghost btn-sm" id="tt180Btn" type="button" style="width:auto; padding:0 18px;">180°</button>
+        </div>
+        <aside class="panel controls" style="max-width:460px; margin:0 auto;">
+          <button class="stack-btn btn-primary" id="ttApplyBtn" type="button">Save Rotated Image</button>
+          <button class="stack-btn btn-ghost btn-sm" id="ttStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="ttResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Image Rotated</div>
+        <div class="result-stats" id="ttResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="ttDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="ttStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: IMAGE ROTATE ============ -->
+
+    <!-- ============ TOOL: PHOTO SIGNATURE RESIZE ============ -->
+    <div class="tool-app" id="app-signatureResize" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Photo Signature Resize</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Resize a photo or signature to common Indian form sizes, with an optional max file size.</p>
+
+      <section id="psEmpty">
+        <div class="dropzone" id="psDropzone" tabindex="0" role="button" aria-label="Upload a photo or signature image">
+          <div class="dropzone-icon" aria-hidden="true">✍️</div>
+          <div class="dropzone-primary">Drop a photo/signature here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG</div>
+        </div>
+        <input type="file" id="psFileInput" class="sr-only" accept=".jpg,.jpeg,.png">
+      </section>
+
+      <section id="psWorkspace" hidden>
+        <div class="panel" style="max-width:420px; margin:0 auto 18px; padding:16px; text-align:center;">
+          <img id="psPreviewImg" alt="" style="max-width:100%; max-height:220px; border-radius:var(--radius-m);">
+        </div>
+        <aside class="panel controls" style="max-width:460px; margin:0 auto;">
+          <div class="control-block">
+            <h3>Preset size</h3>
+            <div id="psPresets" style="display:flex; flex-direction:column; gap:8px;">
+              <button class="preset-btn" data-w="35" data-h="45" type="button" style="text-align:left; padding:10px 12px;">Passport photo — 35 × 45 mm</button>
+              <button class="preset-btn" data-w="25" data-h="35" type="button" style="text-align:left; padding:10px 12px;">PAN card photo — 25 × 35 mm</button>
+              <button class="preset-btn" data-w="25" data-h="25" type="button" style="text-align:left; padding:10px 12px;">ID / Aadhaar photo — 25 × 25 mm</button>
+              <button class="preset-btn" data-w="30" data-h="12" type="button" style="text-align:left; padding:10px 12px;">Signature — 30 × 12 mm</button>
+              <button class="preset-btn active" data-w="custom" type="button" style="text-align:left; padding:10px 12px;">Custom size (mm)</button>
+            </div>
+            <div id="psCustomRow" style="display:flex; gap:10px; align-items:center; margin-top:12px;">
+              <input type="number" id="psCustomW" placeholder="Width" style="width:90px; padding:8px; border-radius:var(--radius-s); border:1px solid var(--line);">
+              <span>×</span>
+              <input type="number" id="psCustomH" placeholder="Height" style="width:90px; padding:8px; border-radius:var(--radius-s); border:1px solid var(--line);">
+              <span style="font-size:12px; color:var(--ink-faint);">mm</span>
+            </div>
+            <div id="psPixelPreview" style="font-size:12.5px; color:var(--ink-faint); margin-top:10px;"></div>
+          </div>
+          <div class="control-block">
+            <h3>Max file size (optional)</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="number" id="psMaxKb" placeholder="e.g. 20" style="width:110px; padding:8px; border-radius:var(--radius-s); border:1px solid var(--line);">
+              <span style="font-size:12px; color:var(--ink-faint);">KB (leave blank for best quality)</span>
+            </div>
+          </div>
+          <button class="stack-btn btn-primary" id="psApplyBtn" type="button">Resize</button>
+          <button class="stack-btn btn-ghost btn-sm" id="psStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="psProgress" aria-live="polite" hidden>
+        <div class="progress-title">Working…</div>
+        <div class="progress-status">Resizing…</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:50%;"></div></div>
+      </section>
+
+      <section id="psResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Ready</div>
+        <div class="result-stats" id="psResultStats"></div>
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="psDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="psStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: PHOTO SIGNATURE RESIZE ============ -->
+
+    <!-- ============ TOOL: IMAGE MERGE ============ -->
+    <div class="tool-app" id="app-imageMerge" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Image Merge</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Combine multiple images side by side into one image.</p>
+
+      <section id="imEmpty">
+        <div class="dropzone" id="imDropzone" tabindex="0" role="button" aria-label="Upload images to merge">
+          <div class="dropzone-icon" aria-hidden="true">🧩</div>
+          <div class="dropzone-primary">Drop images here or <span class="link">browse files</span></div>
+          <div class="dropzone-sub">Select 2 or more images</div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="imFileInput" class="sr-only" multiple accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="imWorkspace" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Images <span class="count" id="imCount"></span></h2></div>
+          <ul class="page-list" id="imList"></ul>
+          <button class="add-more-btn" id="imAddMoreBtn" type="button">+ Add more images</button>
+        </div>
+        <aside class="panel controls">
+          <div class="control-block">
+            <h3>Layout</h3>
+            <div class="scale-presets" role="group" aria-label="Merge layout" id="imLayoutGroup">
+              <button class="preset-btn active" data-layout="horizontal" type="button">Horizontal</button>
+              <button class="preset-btn" data-layout="vertical" type="button">Vertical</button>
+              <button class="preset-btn" data-layout="grid" type="button">Grid</button>
+            </div>
+          </div>
+          <div class="control-block">
+            <h3>Spacing</h3>
+            <input type="range" id="imSpacing" min="0" max="60" value="10" style="width:100%;">
+            <div style="font-size:12.5px; color:var(--ink-faint); margin-top:4px;"><span id="imSpacingLabel">10</span>px gap, white background</div>
+          </div>
+          <button class="stack-btn btn-primary" id="imMergeBtn" type="button">Merge Images</button>
+          <button class="stack-btn btn-ghost btn-sm" id="imStartOverBtn" type="button">Start new</button>
+        </aside>
+      </section>
+
+      <section id="imResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Images Merged</div>
+        <div class="result-stats" id="imResultStats"></div>
+        <img id="imResultPreview" alt="" style="max-width:100%; max-height:320px; border-radius:var(--radius-m); border:1px solid var(--line); margin:14px 0;">
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="imDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="imStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: IMAGE MERGE ============ -->
+
   </main>
 
   <footer>
@@ -1782,11 +2001,11 @@
         ]},
         { title: "Edit Image", items: [
           { id: "image-crop", label: "Image Crop", icon: "✂️" },
-          { id: "image-resize", label: "Image Resize", icon: "📐" },
-          { id: "image-rotate", label: "Image Rotate", icon: "🔃" },
+          { id: "image-resize", label: "Image Resize", icon: "📐", live: true },
+          { id: "image-rotate", label: "Image Rotate", icon: "🔃", live: true },
           { id: "image-crop-circle", label: "Image Crop Circle", icon: "⭕" },
-          { id: "image-merge", label: "Image Merge", icon: "🧩" },
-          { id: "photo-signature-resize", label: "Photo Signature Resize", icon: "✍️" },
+          { id: "image-merge", label: "Image Merge", icon: "🧩", live: true },
+          { id: "photo-signature-resize", label: "Photo Signature Resize", icon: "✍️", live: true },
         ]},
       ],
     },
@@ -1902,7 +2121,7 @@
   }
 
   // ---- tool app router --------------------------------------------------------
-  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress"];
+  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress", "imageResize", "imageRotate", "signatureResize", "imageMerge"];
   function showApp(name) {
     TOOL_APPS.forEach((n) => { const el = $("app-" + n); if (el) el.hidden = (n !== name); });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2710,6 +2929,392 @@
   $("icBackToEditBtn").addEventListener("click", () => icShowSection("icWorkspace"));
 
 
+  // ======================================================================
+  // TOOL: IMAGE RESIZE
+  // ======================================================================
+  const irState = { bitmap: null, format: null, aspectRatio: 1, lastUrl: null };
+  function irShowSection(name) { ["irEmpty", "irWorkspace", "irResult"].forEach((id) => { $(id).hidden = (id !== name); }); }
+
+  async function irIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+    if (!sniffed || sniffed === "heic") { showToast("⚠️ JPG/PNG/WEBP/BMP hi chalega is tool mein."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      irState.bitmap = bitmap; irState.format = sniffed;
+      irState.aspectRatio = bitmap.width / bitmap.height;
+      $("irWidth").value = bitmap.width;
+      $("irHeight").value = bitmap.height;
+      if (irState.lastUrl) URL.revokeObjectURL(irState.lastUrl);
+      const url = URL.createObjectURL(blob);
+      irState.lastUrl = url;
+      $("irPreviewImg").src = url;
+      $("irOriginalMeta").textContent = `Original: ${bitmap.width} × ${bitmap.height}px · ${formatBytes(file.size)}`;
+      document.querySelectorAll("#app-imageResize .preset-btn").forEach((b) => b.classList.toggle("active", b.dataset.preset === "100"));
+      irShowSection("irWorkspace");
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+  $("irWidth").addEventListener("input", () => {
+    if ($("irLockAspect").checked) $("irHeight").value = Math.round(Number($("irWidth").value || 0) / irState.aspectRatio);
+  });
+  $("irHeight").addEventListener("input", () => {
+    if ($("irLockAspect").checked) $("irWidth").value = Math.round(Number($("irHeight").value || 0) * irState.aspectRatio);
+  });
+  document.querySelectorAll("#app-imageResize .preset-btn").forEach((b) => b.addEventListener("click", () => {
+    const pct = Number(b.dataset.preset) / 100;
+    $("irWidth").value = Math.max(1, Math.round(irState.bitmap.width * pct));
+    $("irHeight").value = Math.max(1, Math.round(irState.bitmap.height * pct));
+    document.querySelectorAll("#app-imageResize .preset-btn").forEach((x) => x.classList.remove("active"));
+    b.classList.add("active");
+  }));
+  async function irResize() {
+    if (!irState.bitmap) return;
+    const w = Math.max(1, Number($("irWidth").value) || irState.bitmap.width);
+    const h = Math.max(1, Number($("irHeight").value) || irState.bitmap.height);
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (irState.format !== "png" && irState.format !== "webp") { ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, w, h); }
+      ctx.drawImage(irState.bitmap, 0, 0, w, h);
+      const mime = IC_MIME[irState.format] || "image/jpeg";
+      const bytes = await canvasToBytes(canvas, mime, 0.95);
+      if (irState.lastUrl) URL.revokeObjectURL(irState.lastUrl);
+      const blob = new Blob([bytes], { type: mime });
+      const url = URL.createObjectURL(blob);
+      irState.lastUrl = url;
+      const ext = irState.format === "jpeg" ? "jpg" : irState.format;
+      $("irDownloadBtn").href = url;
+      $("irDownloadBtn").download = `resized-${w}x${h}.${ext}`;
+      $("irResultStats").innerHTML = `${w} × ${h}px · <strong>${formatBytes(bytes.length)}</strong>`;
+      irShowSection("irResult");
+    } catch (err) {
+      showToast("⚠️ Resize karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+    }
+  }
+  $("irDropzone").addEventListener("click", () => $("irFileInput").click());
+  $("irDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("irFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("irDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("irDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("irDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("irDropzone").classList.remove("drag-over"); }));
+  $("irDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) irIngestFile(e.dataTransfer.files[0]); });
+  $("irFileInput").addEventListener("change", () => { const f = $("irFileInput").files[0]; $("irFileInput").value = ""; if (f) irIngestFile(f); });
+  $("irResizeBtn").addEventListener("click", irResize);
+  function irReset() { irState.bitmap = null; irShowSection("irEmpty"); }
+  $("irStartOverBtn").addEventListener("click", irReset);
+  $("irStartOverBtn2").addEventListener("click", irReset);
+
+  // ======================================================================
+  // TOOL: IMAGE ROTATE
+  // ======================================================================
+  const ttState = { bitmap: null, format: null, rotation: 0, lastUrl: null, previewUrl: null };
+  function ttShowSection(name) { ["ttEmpty", "ttWorkspace", "ttResult"].forEach((id) => { $(id).hidden = (id !== name); }); }
+  async function ttIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+    if (!sniffed || sniffed === "heic") { showToast("⚠️ JPG/PNG/WEBP/BMP hi chalega is tool mein."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      ttState.bitmap = bitmap; ttState.format = sniffed; ttState.rotation = 0;
+      if (ttState.previewUrl) URL.revokeObjectURL(ttState.previewUrl);
+      const url = URL.createObjectURL(blob);
+      ttState.previewUrl = url;
+      $("ttPreviewImg").src = url;
+      $("ttPreviewImg").style.transform = "rotate(0deg)";
+      ttShowSection("ttWorkspace");
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+  function ttSetRotation(deg) {
+    ttState.rotation = ((deg % 360) + 360) % 360;
+    $("ttPreviewImg").style.transform = `rotate(${ttState.rotation}deg)`;
+  }
+  $("ttRotateCwBtn").addEventListener("click", () => ttSetRotation(ttState.rotation + 90));
+  $("ttRotateCcwBtn").addEventListener("click", () => ttSetRotation(ttState.rotation - 90));
+  $("tt180Btn").addEventListener("click", () => ttSetRotation(ttState.rotation + 180));
+  async function ttApply() {
+    if (!ttState.bitmap) return;
+    try {
+      const canvas = rotateBitmapToCanvas(ttState.bitmap, ttState.rotation);
+      const mime = IC_MIME[ttState.format] || "image/jpeg";
+      const bytes = await canvasToBytes(canvas, mime, 0.95);
+      if (ttState.lastUrl) URL.revokeObjectURL(ttState.lastUrl);
+      const blob = new Blob([bytes], { type: mime });
+      const url = URL.createObjectURL(blob);
+      ttState.lastUrl = url;
+      const ext = ttState.format === "jpeg" ? "jpg" : ttState.format;
+      $("ttDownloadBtn").href = url;
+      $("ttDownloadBtn").download = `rotated.${ext}`;
+      $("ttResultStats").innerHTML = `${canvas.width} × ${canvas.height}px · <strong>${formatBytes(bytes.length)}</strong>`;
+      ttShowSection("ttResult");
+    } catch (err) {
+      showToast("⚠️ Rotate karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+    }
+  }
+  $("ttDropzone").addEventListener("click", () => $("ttFileInput").click());
+  $("ttDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("ttFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("ttDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("ttDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("ttDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("ttDropzone").classList.remove("drag-over"); }));
+  $("ttDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) ttIngestFile(e.dataTransfer.files[0]); });
+  $("ttFileInput").addEventListener("change", () => { const f = $("ttFileInput").files[0]; $("ttFileInput").value = ""; if (f) ttIngestFile(f); });
+  $("ttApplyBtn").addEventListener("click", ttApply);
+  function ttReset() { ttState.bitmap = null; ttShowSection("ttEmpty"); }
+  $("ttStartOverBtn").addEventListener("click", ttReset);
+  $("ttStartOverBtn2").addEventListener("click", ttReset);
+
+  // ======================================================================
+  // TOOL: PHOTO SIGNATURE RESIZE
+  // ======================================================================
+  const PS_DPI = 200; // standard print resolution for ID-photo sizing
+  const psState = { bitmap: null, format: null, presetW: 35, presetH: 45, lastUrl: null, previewUrl: null };
+  function psShowSection(name) { ["psEmpty", "psWorkspace", "psProgress", "psResult"].forEach((id) => { $(id).hidden = (id !== name); }); }
+  function psUpdatePixelPreview() {
+    const w = Math.round((psState.presetW / 25.4) * PS_DPI);
+    const h = Math.round((psState.presetH / 25.4) * PS_DPI);
+    $("psPixelPreview").textContent = `≈ ${w} × ${h}px at ${PS_DPI} DPI`;
+  }
+  async function psIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+    if (sniffed !== "jpeg" && sniffed !== "png") { showToast("⚠️ Sirf JPG/PNG chalega is tool mein."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      psState.bitmap = bitmap; psState.format = sniffed;
+      if (psState.previewUrl) URL.revokeObjectURL(psState.previewUrl);
+      const url = URL.createObjectURL(blob);
+      psState.previewUrl = url;
+      $("psPreviewImg").src = url;
+      psUpdatePixelPreview();
+      psShowSection("psWorkspace");
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+  document.querySelectorAll("#psPresets .preset-btn").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#psPresets .preset-btn").forEach((x) => x.classList.remove("active"));
+    b.classList.add("active");
+    const isCustom = b.dataset.w === "custom";
+    $("psCustomRow").style.display = isCustom ? "flex" : "none";
+    if (!isCustom) {
+      psState.presetW = Number(b.dataset.w); psState.presetH = Number(b.dataset.h);
+      psUpdatePixelPreview();
+    }
+  }));
+  $("psCustomRow").style.display = "flex";
+  ["psCustomW", "psCustomH"].forEach((id) => $(id).addEventListener("input", () => {
+    psState.presetW = Number($("psCustomW").value) || psState.presetW;
+    psState.presetH = Number($("psCustomH").value) || psState.presetH;
+    psUpdatePixelPreview();
+  }));
+  async function psApply() {
+    if (!psState.bitmap) return;
+    psShowSection("psProgress");
+    try {
+      const w = Math.max(1, Math.round((psState.presetW / 25.4) * PS_DPI));
+      const h = Math.max(1, Math.round((psState.presetH / 25.4) * PS_DPI));
+      // fit-and-crop to the exact target aspect ratio (never distorts/stretches)
+      const srcAspect = psState.bitmap.width / psState.bitmap.height;
+      const targetAspect = w / h;
+      let sx = 0, sy = 0, sw = psState.bitmap.width, sh = psState.bitmap.height;
+      if (srcAspect > targetAspect) { sw = sh * targetAspect; sx = (psState.bitmap.width - sw) / 2; }
+      else { sh = sw / targetAspect; sy = (psState.bitmap.height - sh) / 2; }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(psState.bitmap, sx, sy, sw, sh, 0, 0, w, h);
+
+      const maxKb = Number($("psMaxKb").value);
+      let bytes;
+      if (maxKb > 0) {
+        const result = await compressWithResolutionFallback(async (resScale) => {
+          if (resScale === 1) return canvas;
+          const c2 = document.createElement("canvas");
+          c2.width = Math.max(1, Math.round(w * resScale)); c2.height = Math.max(1, Math.round(h * resScale));
+          c2.getContext("2d").drawImage(canvas, 0, 0, c2.width, c2.height);
+          return c2;
+        }, maxKb * 1024, "image/jpeg", true);
+        bytes = result.bytes;
+      } else {
+        bytes = await canvasToBytes(canvas, "image/jpeg", 0.95);
+      }
+
+      if (psState.lastUrl) URL.revokeObjectURL(psState.lastUrl);
+      const blob = new Blob([bytes], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      psState.lastUrl = url;
+      $("psDownloadBtn").href = url;
+      $("psDownloadBtn").download = `photo-${psState.presetW}x${psState.presetH}mm.jpg`;
+      $("psResultStats").innerHTML = `${w} × ${h}px (${psState.presetW}×${psState.presetH}mm) · <strong>${formatBytes(bytes.length)}</strong>`;
+      psShowSection("psResult");
+    } catch (err) {
+      showToast("⚠️ Resize karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+      psShowSection("psWorkspace");
+    }
+  }
+  $("psDropzone").addEventListener("click", () => $("psFileInput").click());
+  $("psDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("psFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("psDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("psDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("psDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("psDropzone").classList.remove("drag-over"); }));
+  $("psDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) psIngestFile(e.dataTransfer.files[0]); });
+  $("psFileInput").addEventListener("change", () => { const f = $("psFileInput").files[0]; $("psFileInput").value = ""; if (f) psIngestFile(f); });
+  $("psApplyBtn").addEventListener("click", psApply);
+  function psReset() { psState.bitmap = null; psShowSection("psEmpty"); }
+  $("psStartOverBtn").addEventListener("click", psReset);
+  $("psStartOverBtn2").addEventListener("click", psReset);
+
+  // ======================================================================
+  // TOOL: IMAGE MERGE
+  // ======================================================================
+  const imState = { items: [], layout: "horizontal", spacing: 10, lastUrl: null, processing: false };
+  let imIdCounter = 1;
+  function imRenderList() {
+    $("imCount").textContent = imState.items.length ? `(${imState.items.length})` : "";
+    const listEl = $("imList");
+    listEl.innerHTML = "";
+    imState.items.forEach((item, idx) => {
+      const li = document.createElement("li");
+      li.className = "page-card";
+      li.dataset.itemId = item.id;
+      li.innerHTML = `
+        <span class="order-badge">${idx + 1}</span>
+        <span class="thumb-wrap"><img src="${item.thumb}" alt=""></span>
+        <span class="page-meta">
+          <span class="name">${escapeHtml(item.name)}</span>
+          <span class="dims">${item.bitmap.width} × ${item.bitmap.height}px</span>
+        </span>
+        <span class="page-actions">
+          <button class="icon-btn" data-action="up" ${idx === 0 ? "disabled" : ""} aria-label="Move up">↑</button>
+          <button class="icon-btn" data-action="down" ${idx === imState.items.length - 1 ? "disabled" : ""} aria-label="Move down">↓</button>
+          <button class="icon-btn danger" data-action="delete" aria-label="Remove">✕</button>
+        </span>`;
+      listEl.appendChild(li);
+    });
+    $("imMergeBtn").disabled = imState.items.length < 2 || imState.processing;
+  }
+  $("imList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = e.target.closest(".page-card").dataset.itemId;
+    const idx = imState.items.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+    if (btn.dataset.action === "delete") imState.items.splice(idx, 1);
+    else if (btn.dataset.action === "up" && idx > 0) [imState.items[idx - 1], imState.items[idx]] = [imState.items[idx], imState.items[idx - 1]];
+    else if (btn.dataset.action === "down" && idx < imState.items.length - 1) [imState.items[idx + 1], imState.items[idx]] = [imState.items[idx], imState.items[idx + 1]];
+    imRenderList();
+  });
+  async function imAddFiles(fileList) {
+    for (const file of Array.from(fileList)) {
+      const buf = await file.arrayBuffer();
+      const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+      if (!sniffed || sniffed === "heic") { showToast(`⚠️ "${file.name}" supported format nahi hai, skip kiya.`); continue; }
+      try {
+        const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+        const bitmap = await createImageBitmap(blob);
+        const thumbCanvas = document.createElement("canvas");
+        const tw = 100, th = Math.max(1, Math.round(100 * (bitmap.height / bitmap.width)));
+        thumbCanvas.width = tw; thumbCanvas.height = th;
+        thumbCanvas.getContext("2d").drawImage(bitmap, 0, 0, tw, th);
+        imState.items.push({ id: "im" + (imIdCounter++), name: file.name, bitmap, thumb: thumbCanvas.toDataURL("image/jpeg", 0.7) });
+      } catch (err) {
+        showToast(`⚠️ "${file.name}" nahi khul payi.`);
+      }
+    }
+    $("imEmpty").hidden = true; $("imWorkspace").hidden = false;
+    imRenderList();
+  }
+  $("imDropzone").addEventListener("click", () => $("imFileInput").click());
+  $("imDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("imFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("imDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("imDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("imDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("imDropzone").classList.remove("drag-over"); }));
+  $("imDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files.length) imAddFiles(e.dataTransfer.files); });
+  $("imFileInput").addEventListener("change", () => { if ($("imFileInput").files.length) imAddFiles($("imFileInput").files); $("imFileInput").value = ""; });
+  $("imAddMoreBtn").addEventListener("click", () => $("imFileInput").click());
+  document.querySelectorAll("#imLayoutGroup .preset-btn").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#imLayoutGroup .preset-btn").forEach((x) => x.classList.remove("active"));
+    b.classList.add("active");
+    imState.layout = b.dataset.layout;
+  }));
+  $("imSpacing").addEventListener("input", () => {
+    imState.spacing = Number($("imSpacing").value);
+    $("imSpacingLabel").textContent = imState.spacing;
+  });
+  async function imMerge() {
+    if (imState.items.length < 2 || imState.processing) return;
+    imState.processing = true;
+    try {
+      const gap = imState.spacing;
+      const bitmaps = imState.items.map((it) => it.bitmap);
+      let canvas;
+      if (imState.layout === "horizontal") {
+        const h = Math.max(...bitmaps.map((b) => b.height));
+        const scaled = bitmaps.map((b) => ({ w: Math.round(b.width * (h / b.height)), h }));
+        const totalW = scaled.reduce((s, b) => s + b.w, 0) + gap * (bitmaps.length - 1);
+        canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, totalW); canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let x = 0;
+        bitmaps.forEach((b, i) => { ctx.drawImage(b, x, 0, scaled[i].w, h); x += scaled[i].w + gap; });
+      } else if (imState.layout === "vertical") {
+        const w = Math.max(...bitmaps.map((b) => b.width));
+        const scaled = bitmaps.map((b) => ({ w, h: Math.round(b.height * (w / b.width)) }));
+        const totalH = scaled.reduce((s, b) => s + b.h, 0) + gap * (bitmaps.length - 1);
+        canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = Math.max(1, totalH);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let y = 0;
+        bitmaps.forEach((b, i) => { ctx.drawImage(b, 0, y, w, scaled[i].h); y += scaled[i].h + gap; });
+      } else {
+        const cols = Math.ceil(Math.sqrt(bitmaps.length));
+        const rows = Math.ceil(bitmaps.length / cols);
+        const cellSize = 320;
+        canvas = document.createElement("canvas");
+        canvas.width = cols * cellSize + gap * (cols - 1);
+        canvas.height = rows * cellSize + gap * (rows - 1);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        bitmaps.forEach((b, i) => {
+          const col = i % cols, row = Math.floor(i / cols);
+          const cellX = col * (cellSize + gap), cellY = row * (cellSize + gap);
+          const scale = Math.min(cellSize / b.width, cellSize / b.height);
+          const dw = b.width * scale, dh = b.height * scale;
+          ctx.drawImage(b, cellX + (cellSize - dw) / 2, cellY + (cellSize - dh) / 2, dw, dh);
+        });
+      }
+
+      const bytes = await canvasToBytes(canvas, "image/jpeg", 0.92);
+      if (imState.lastUrl) URL.revokeObjectURL(imState.lastUrl);
+      const blob = new Blob([bytes], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      imState.lastUrl = url;
+      $("imDownloadBtn").href = url;
+      $("imDownloadBtn").download = "merged-image.jpg";
+      $("imResultPreview").src = url;
+      $("imResultStats").innerHTML = `${imState.items.length} images · ${canvas.width}×${canvas.height}px · <strong>${formatBytes(bytes.length)}</strong>`;
+      $("imWorkspace").hidden = true; $("imResult").hidden = false;
+    } catch (err) {
+      showToast("⚠️ Merge karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+    } finally {
+      imState.processing = false;
+    }
+  }
+  $("imMergeBtn").addEventListener("click", imMerge);
+  function imReset() {
+    if (imState.lastUrl) { URL.revokeObjectURL(imState.lastUrl); imState.lastUrl = null; }
+    imState.items = [];
+    $("imEmpty").hidden = false; $("imWorkspace").hidden = true; $("imResult").hidden = true;
+  }
+  $("imStartOverBtn").addEventListener("click", imReset);
+  $("imStartOverBtn2").addEventListener("click", imReset);
+
   // ---- tool menu routing (final) --------------------------------------------------------
   const TOOL_APP_ROUTES = {
     "split-pdf": ["pageEditor", "split"],
@@ -2736,6 +3341,10 @@
     "webp-to-jpeg": ["imageCompress", "webp-to-jpeg"],
     "compress-heic": ["imageCompress", "compress-heic"],
     "heic-to-jpeg": ["imageCompress", "heic-to-jpeg"],
+    "image-resize": ["imageResize"],
+    "image-rotate": ["imageRotate"],
+    "photo-signature-resize": ["signatureResize"],
+    "image-merge": ["imageMerge"],
   };
 
   function activateTool(toolId) {

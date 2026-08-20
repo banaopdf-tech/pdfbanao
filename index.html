@@ -1044,6 +1044,57 @@
     </div>
     <!-- ============ /TOOL: IMAGE MERGE ============ -->
 
+    <!-- ============ TOOL: BARCODE GENERATOR ============ -->
+    <div class="tool-app" id="app-barcodeGen" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Barcode Generator</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Create a real, scannable Code 39 barcode — generated on your device.</p>
+
+      <div class="panel" style="max-width:520px; margin:0 auto; padding:22px;">
+        <div class="control-block">
+          <h3>Text / Value</h3>
+          <input type="text" id="bgInput" placeholder="e.g. ITEM-001" style="width:100%; padding:11px 12px; border-radius:var(--radius-m); border:1px solid var(--line); font-size:15px; font-family:var(--font-mono); text-transform:uppercase; box-sizing:border-box;">
+          <p class="size-mode-note" style="margin-top:8px;">Supports A–Z, 0–9, space, and - . $ / + %</p>
+        </div>
+        <button class="stack-btn btn-primary" id="bgGenerateBtn" type="button">Generate Barcode</button>
+      </div>
+
+      <div id="bgResultWrap" style="max-width:640px; margin:22px auto 0; text-align:center;" hidden>
+        <div class="panel" style="padding:24px; overflow-x:auto;">
+          <canvas id="bgCanvas" style="max-width:100%;"></canvas>
+        </div>
+        <div class="result-actions" style="margin-top:16px;">
+          <a class="stack-btn btn-primary" id="bgDownloadBtn" download="barcode.png" href="#">⬇ Download PNG</a>
+        </div>
+      </div>
+    </div>
+    <!-- ============ /TOOL: BARCODE GENERATOR ============ -->
+
+    <!-- ============ TOOL: COLOR EXTRACTOR / IMAGE TO COLOR ============ -->
+    <div class="tool-app" id="app-colorExtract" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" style="font-size:26px;">Color Extractor</h1>
+      <p class="hero-sub" style="margin-bottom:22px;">Pull the dominant colors out of any image.</p>
+
+      <section id="ceEmpty">
+        <div class="dropzone" id="ceDropzone" tabindex="0" role="button" aria-label="Upload an image">
+          <div class="dropzone-icon" aria-hidden="true">🎨</div>
+          <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="ceFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="ceResultSection" hidden>
+        <div class="panel" style="max-width:360px; margin:0 auto 20px; padding:14px; text-align:center;">
+          <img id="cePreviewImg" alt="" style="max-width:100%; max-height:200px; border-radius:var(--radius-m);">
+        </div>
+        <div id="cePalette" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; max-width:760px; margin:0 auto;"></div>
+        <button class="stack-btn btn-ghost btn-sm" id="ceStartOverBtn" type="button" style="max-width:200px; margin:22px auto 0;">Start new</button>
+      </section>
+    </div>
+    <!-- ============ /TOOL: COLOR EXTRACTOR ============ -->
+
   </main>
 
   <footer>
@@ -2045,10 +2096,10 @@
           { id: "zip-extractor", label: "ZIP Extractor", icon: "📦", live: true },
         ]},
         { title: "Others", items: [
-          { id: "barcode-generator", label: "Barcode Generator", icon: "🔳" },
+          { id: "barcode-generator", label: "Barcode Generator", icon: "🔳", live: true },
           { id: "password-generator", label: "Password Generator", icon: "🔑", live: true },
-          { id: "image-to-color", label: "Image to Color", icon: "🎨" },
-          { id: "color-extractor", label: "Color Extractor", icon: "🎨" },
+          { id: "image-to-color", label: "Image to Color", icon: "🎨", live: true },
+          { id: "color-extractor", label: "Color Extractor", icon: "🎨", live: true },
         ]},
       ],
     },
@@ -2121,7 +2172,7 @@
   }
 
   // ---- tool app router --------------------------------------------------------
-  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress", "imageResize", "imageRotate", "signatureResize", "imageMerge"];
+  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress", "imageResize", "imageRotate", "signatureResize", "imageMerge", "barcodeGen", "colorExtract"];
   function showApp(name) {
     TOOL_APPS.forEach((n) => { const el = $("app-" + n); if (el) el.hidden = (n !== name); });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3315,6 +3366,180 @@
   $("imStartOverBtn").addEventListener("click", imReset);
   $("imStartOverBtn2").addEventListener("click", imReset);
 
+  // ======================================================================
+  // TOOL: BARCODE GENERATOR (Code 39 — a real, scannable barcode)
+  // ======================================================================
+  // Pattern data verified against the widely-used JsBarcode library's
+  // CODE39 table (cross-checked by hand-decoding '0' and 'A' against the
+  // Code 39 spec's "two-out-of-five" bar/space algorithm) — every one of
+  // the 44 characters is exactly 9 elements (5 bars + 4 spaces), 3 wide +
+  // 6 narrow, each starting and ending with a bar, as required by spec.
+  const CODE39_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*";
+  const CODE39_ENCODINGS = [20957,29783,23639,30485,20951,29813,23669,20855,29789,23645,29975,23831,30533,22295,30149,24005,21623,29981,23837,22301,30023,23879,30545,22343,30161,24017,21959,30065,23921,22385,29015,18263,29141,17879,29045,18293,17783,29021,18269,17477,17489,17681,20753,17885];
+
+  function code39PatternFor(ch) {
+    const idx = CODE39_CHARS.indexOf(ch);
+    if (idx === -1) return null;
+    return CODE39_ENCODINGS[idx].toString(2).padStart(15, "0"); // 1=bar module, 0=space module
+  }
+  function code39Encode(text) {
+    const seq = ["*", ...text.toUpperCase().split(""), "*"];
+    const patterns = [];
+    for (const ch of seq) {
+      const p = code39PatternFor(ch);
+      if (!p) return null; // unsupported character
+      patterns.push(p);
+    }
+    return patterns.join("0"); // one narrow-space module between every character
+  }
+  function bgRenderBarcode(text) {
+    const binary = code39Encode(text);
+    if (!binary) return null;
+    const moduleWidth = 2.4;
+    const barHeight = 90;
+    const quietZone = moduleWidth * 10; // spec minimum: 10x module width
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(binary.length * moduleWidth + quietZone * 2);
+    canvas.height = barHeight + 30;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
+    let x = quietZone;
+    for (let i = 0; i < binary.length; i++) {
+      if (binary[i] === "1") ctx.fillRect(x, 8, moduleWidth, barHeight);
+      x += moduleWidth;
+    }
+    ctx.fillStyle = "#152238";
+    ctx.font = "14px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(text.toUpperCase(), canvas.width / 2, barHeight + 26);
+    return canvas;
+  }
+  async function bgGenerate() {
+    const text = $("bgInput").value.trim();
+    if (!text) { showToast("⚠️ Pehle koi text likho."); return; }
+    const canvas = bgRenderBarcode(text);
+    if (!canvas) {
+      showToast("⚠️ Kuch characters supported nahi hain — sirf A-Z, 0-9, space, - . $ / + % chalega.");
+      return;
+    }
+    const displayCanvas = $("bgCanvas");
+    displayCanvas.width = canvas.width;
+    displayCanvas.height = canvas.height;
+    displayCanvas.getContext("2d").drawImage(canvas, 0, 0);
+    try {
+      const bytes = await canvasToBytes(canvas, "image/png");
+      const url = URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
+      $("bgDownloadBtn").href = url;
+      $("bgDownloadBtn").download = `barcode-${text.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}.png`;
+      $("bgResultWrap").hidden = false;
+    } catch (err) {
+      showToast("⚠️ Barcode image banate waqt kuch galat ho gaya.");
+    }
+  }
+  $("bgGenerateBtn").addEventListener("click", bgGenerate);
+  $("bgInput").addEventListener("keydown", (e) => { if (e.key === "Enter") bgGenerate(); });
+  $("bgInput").addEventListener("input", () => { $("bgInput").value = $("bgInput").value.toUpperCase(); });
+
+  // ======================================================================
+  // TOOL: COLOR EXTRACTOR / IMAGE TO COLOR
+  // ======================================================================
+  function ceRgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s; const l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        default: h = (r - g) / d + 4;
+      }
+      h /= 6;
+    }
+    return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+  }
+  function ceExtractColors(bitmap, count) {
+    const maxDim = 150;
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    const data = ctx.getImageData(0, 0, w, h).data;
+
+    const step = 24; // quantization bucket size per channel
+    const buckets = new Map();
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue; // skip mostly-transparent pixels
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const key = `${Math.round(r / step)}_${Math.round(g / step)}_${Math.round(b / step)}`;
+      let bucket = buckets.get(key);
+      if (!bucket) { bucket = { r: 0, g: 0, b: 0, n: 0 }; buckets.set(key, bucket); }
+      bucket.r += r; bucket.g += g; bucket.b += b; bucket.n++;
+    }
+    const total = Array.from(buckets.values()).reduce((s, b) => s + b.n, 0) || 1;
+    return Array.from(buckets.values())
+      .sort((a, b) => b.n - a.n)
+      .slice(0, count)
+      .map((bucket) => {
+        const r = Math.round(bucket.r / bucket.n), g = Math.round(bucket.g / bucket.n), b = Math.round(bucket.b / bucket.n);
+        const hex = "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+        return { r, g, b, hex, pct: Math.round((bucket.n / total) * 100) };
+      });
+  }
+  function ceRenderPalette(colors) {
+    const wrap = $("cePalette");
+    wrap.innerHTML = "";
+    colors.forEach((c) => {
+      const card = document.createElement("div");
+      card.className = "panel";
+      card.style.cssText = "overflow:hidden;";
+      card.innerHTML = `
+        <div style="height:64px; background:${c.hex};"></div>
+        <div style="padding:10px 12px;">
+          <div style="font-family:var(--font-mono); font-weight:700; font-size:13.5px;">${c.hex.toUpperCase()}</div>
+          <div style="font-size:11.5px; color:var(--ink-faint); margin-top:2px;">rgb(${c.r}, ${c.g}, ${c.b})</div>
+          <div style="font-size:11.5px; color:var(--ink-faint);">${ceRgbToHsl(c.r, c.g, c.b)}</div>
+          <div style="font-size:11px; color:var(--ink-faint); margin-top:2px;">~${c.pct}% of image</div>
+          <button class="stack-btn btn-ghost btn-sm" data-hex="${c.hex}" type="button" style="width:100%; margin-top:8px;">📋 Copy HEX</button>
+        </div>`;
+      wrap.appendChild(card);
+    });
+  }
+  $("cePalette").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-hex]");
+    if (!btn) return;
+    navigator.clipboard.writeText(btn.dataset.hex).then(() => showToast("✅ " + btn.dataset.hex + " copy ho gaya."));
+  });
+  async function ceIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+    if (!sniffed || sniffed === "heic") { showToast("⚠️ JPG/PNG/WEBP/BMP hi chalega is tool mein."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      $("cePreviewImg").src = URL.createObjectURL(blob);
+      const colors = ceExtractColors(bitmap, 8);
+      ceRenderPalette(colors);
+      $("ceEmpty").hidden = true;
+      $("ceResultSection").hidden = false;
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+  $("ceDropzone").addEventListener("click", () => $("ceFileInput").click());
+  $("ceDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("ceFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("ceDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("ceDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("ceDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("ceDropzone").classList.remove("drag-over"); }));
+  $("ceDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) ceIngestFile(e.dataTransfer.files[0]); });
+  $("ceFileInput").addEventListener("change", () => { const f = $("ceFileInput").files[0]; $("ceFileInput").value = ""; if (f) ceIngestFile(f); });
+  $("ceStartOverBtn").addEventListener("click", () => { $("ceEmpty").hidden = false; $("ceResultSection").hidden = true; });
+
   // ---- tool menu routing (final) --------------------------------------------------------
   const TOOL_APP_ROUTES = {
     "split-pdf": ["pageEditor", "split"],
@@ -3345,6 +3570,9 @@
     "image-rotate": ["imageRotate"],
     "photo-signature-resize": ["signatureResize"],
     "image-merge": ["imageMerge"],
+    "barcode-generator": ["barcodeGen"],
+    "color-extractor": ["colorExtract"],
+    "image-to-color": ["colorExtract"],
   };
 
   function activateTool(toolId) {

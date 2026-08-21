@@ -174,6 +174,26 @@
   .file-row .fname{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .file-row .fsize{color:var(--ink-faint); font-size:12px; flex:none;}
 
+  /* ---------- image crop ---------- */
+  .crop-stage-wrap{max-width:560px; margin:0 auto 18px; text-align:center;}
+  #cropStage{position:relative; display:inline-block; max-width:100%; touch-action:none; line-height:0;}
+  #cropStage img{display:block; max-width:100%; max-height:60vh; user-select:none; -webkit-user-drag:none;}
+  #cropBox{
+    position:absolute; border:2px solid #fff; box-sizing:border-box;
+    box-shadow:0 0 0 9999px rgba(15,23,36,.55);
+    cursor:move; touch-action:none;
+  }
+  #cropBox.circular{border-radius:50%;}
+  .crop-handle{
+    position:absolute; width:18px; height:18px; background:#fff;
+    border:2px solid var(--teal); border-radius:50%; touch-action:none;
+    box-shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+  .crop-handle[data-handle="nw"]{top:0; left:0; transform:translate(-50%,-50%); cursor:nwse-resize;}
+  .crop-handle[data-handle="ne"]{top:0; right:0; transform:translate(50%,-50%); cursor:nesw-resize;}
+  .crop-handle[data-handle="sw"]{bottom:0; left:0; transform:translate(-50%,50%); cursor:nesw-resize;}
+  .crop-handle[data-handle="se"]{bottom:0; right:0; transform:translate(50%,50%); cursor:nwse-resize;}
+
   main{flex:1; width:100%; max-width:1180px; margin:0 auto; padding:28px 20px 60px;}
 
   /* ---------- empty state ---------- */
@@ -1094,6 +1114,53 @@
       </section>
     </div>
     <!-- ============ /TOOL: COLOR EXTRACTOR ============ -->
+
+    <!-- ============ TOOL: IMAGE CROP / IMAGE CROP CIRCLE ============ -->
+    <div class="tool-app" id="app-imageCrop" hidden>
+      <button type="button" class="back-link" data-back>← All tools</button>
+      <h1 class="hero-title" id="icrTitle" style="font-size:26px;">Image Crop</h1>
+      <p class="hero-sub" id="icrSub" style="margin-bottom:22px;">Drag the box to select the area you want, then crop.</p>
+
+      <section id="icrEmpty">
+        <div class="dropzone" id="icrDropzone" tabindex="0" role="button" aria-label="Upload an image">
+          <div class="dropzone-icon" aria-hidden="true">✂️</div>
+          <div class="dropzone-primary">Drop an image here or <span class="link">browse files</span></div>
+          <div class="filetypes">JPG · JPEG · PNG · WEBP · BMP</div>
+        </div>
+        <input type="file" id="icrFileInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,.bmp">
+      </section>
+
+      <section id="icrWorkspace" hidden>
+        <div class="crop-stage-wrap">
+          <div id="cropStage">
+            <img id="cropImg" alt="" draggable="false">
+            <div id="cropBox">
+              <div class="crop-handle" data-handle="nw"></div>
+              <div class="crop-handle" data-handle="ne"></div>
+              <div class="crop-handle" data-handle="sw"></div>
+              <div class="crop-handle" data-handle="se"></div>
+            </div>
+          </div>
+          <p style="font-size:12.5px; color:var(--ink-faint); margin-top:10px;">Drag inside the box to move it, drag a corner to resize.</p>
+        </div>
+        <div style="max-width:420px; margin:0 auto; display:flex; gap:10px;">
+          <button class="stack-btn btn-primary" id="icrApplyBtn" type="button">Crop Image</button>
+          <button class="stack-btn btn-ghost btn-sm" id="icrStartOverBtn" type="button">Start new</button>
+        </div>
+      </section>
+
+      <section id="icrResult" hidden>
+        <div class="result-seal" aria-hidden="true">✓</div>
+        <div class="result-title">Image Cropped</div>
+        <div class="result-stats" id="icrResultStats"></div>
+        <img id="icrResultPreview" alt="" style="max-width:100%; max-height:280px; border-radius:var(--radius-m); border:1px solid var(--line); margin:14px 0;">
+        <div class="result-actions">
+          <a class="stack-btn btn-primary" id="icrDownloadBtn" download="" href="#">⬇ Download</a>
+          <button class="stack-btn btn-ghost" id="icrStartOverBtn2" type="button">Start new</button>
+        </div>
+      </section>
+    </div>
+    <!-- ============ /TOOL: IMAGE CROP ============ -->
 
   </main>
 
@@ -2051,10 +2118,10 @@
           { id: "heic-to-jpeg", label: "HEIC to JPEG", icon: "🔄", live: true },
         ]},
         { title: "Edit Image", items: [
-          { id: "image-crop", label: "Image Crop", icon: "✂️" },
+          { id: "image-crop", label: "Image Crop", icon: "✂️", live: true },
           { id: "image-resize", label: "Image Resize", icon: "📐", live: true },
           { id: "image-rotate", label: "Image Rotate", icon: "🔃", live: true },
-          { id: "image-crop-circle", label: "Image Crop Circle", icon: "⭕" },
+          { id: "image-crop-circle", label: "Image Crop Circle", icon: "⭕", live: true },
           { id: "image-merge", label: "Image Merge", icon: "🧩", live: true },
           { id: "photo-signature-resize", label: "Photo Signature Resize", icon: "✍️", live: true },
         ]},
@@ -2172,7 +2239,7 @@
   }
 
   // ---- tool app router --------------------------------------------------------
-  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress", "imageResize", "imageRotate", "signatureResize", "imageMerge", "barcodeGen", "colorExtract"];
+  const TOOL_APPS = ["merge", "pageEditor", "pdfToImage", "textToPdf", "passwordGen", "zipMaker", "zipExtractor", "imageCompress", "imageResize", "imageRotate", "signatureResize", "imageMerge", "barcodeGen", "colorExtract", "imageCrop"];
   function showApp(name) {
     TOOL_APPS.forEach((n) => { const el = $("app-" + n); if (el) el.hidden = (n !== name); });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3540,6 +3607,187 @@
   $("ceFileInput").addEventListener("change", () => { const f = $("ceFileInput").files[0]; $("ceFileInput").value = ""; if (f) ceIngestFile(f); });
   $("ceStartOverBtn").addEventListener("click", () => { $("ceEmpty").hidden = false; $("ceResultSection").hidden = true; });
 
+  // ======================================================================
+  // TOOL: IMAGE CROP / IMAGE CROP CIRCLE
+  // ======================================================================
+  const ICR_MODE_TEXT = {
+    "image-crop": ["Image Crop", "Drag the box to select the area you want, then crop."],
+    "image-crop-circle": ["Image Crop Circle", "Drag the circle to select the area you want — the output is a transparent PNG."],
+  };
+  const icrState = { mode: "image-crop", bitmap: null, format: null, lastUrl: null, previewUrl: null };
+
+  // Drag-to-select controller: box position/size are tracked as percentages
+  // of the displayed image (not pixels), so it stays correct at any zoom/
+  // screen size; pixel coordinates are only computed at crop time.
+  const cropController = (function () {
+    const stage = document.getElementById("cropStage");
+    const box = document.getElementById("cropBox");
+    let rect = { x: 10, y: 10, w: 80, h: 80 };
+    let dragMode = null;
+    let startPointer = null;
+    let startRect = null;
+
+    function isCircular() { return icrState.mode === "image-crop-circle"; }
+
+    function render() {
+      box.style.left = rect.x + "%";
+      box.style.top = rect.y + "%";
+      box.style.width = rect.w + "%";
+      box.style.height = rect.h + "%";
+    }
+    function clamp() {
+      rect.w = Math.max(5, Math.min(100, rect.w));
+      rect.h = Math.max(5, Math.min(100, rect.h));
+      rect.x = Math.max(0, Math.min(100 - rect.w, rect.x));
+      rect.y = Math.max(0, Math.min(100 - rect.h, rect.y));
+    }
+    function stagePercent(clientX, clientY) {
+      const r = stage.getBoundingClientRect();
+      if (!r.width || !r.height) return { px: 0, py: 0 };
+      return { px: ((clientX - r.left) / r.width) * 100, py: ((clientY - r.top) / r.height) * 100 };
+    }
+    function beginDrag(mode, e) {
+      e.preventDefault();
+      dragMode = mode;
+      startPointer = stagePercent(e.clientX, e.clientY);
+      startRect = Object.assign({}, rect);
+      if (e.target.setPointerCapture) { try { e.target.setPointerCapture(e.pointerId); } catch (err) {} }
+    }
+    function onMove(e) {
+      if (!dragMode) return;
+      const p = stagePercent(e.clientX, e.clientY);
+      const dx = p.px - startPointer.px;
+      const dy = p.py - startPointer.py;
+
+      if (dragMode === "move") {
+        rect.x = startRect.x + dx;
+        rect.y = startRect.y + dy;
+      } else {
+        let { x, y, w, h } = startRect;
+        if (dragMode === "se") { w = startRect.w + dx; h = startRect.h + dy; }
+        else if (dragMode === "sw") { x = startRect.x + dx; w = startRect.w - dx; h = startRect.h + dy; }
+        else if (dragMode === "ne") { y = startRect.y + dy; w = startRect.w + dx; h = startRect.h - dy; }
+        else if (dragMode === "nw") { x = startRect.x + dx; y = startRect.y + dy; w = startRect.w - dx; h = startRect.h - dy; }
+
+        if (isCircular()) {
+          const size = Math.max(Math.max(w, h), 5);
+          if (dragMode === "se") { w = h = size; }
+          else if (dragMode === "sw") { w = h = size; x = startRect.x + startRect.w - size; }
+          else if (dragMode === "ne") { w = h = size; y = startRect.y + startRect.h - size; }
+          else if (dragMode === "nw") { w = h = size; x = startRect.x + startRect.w - size; y = startRect.y + startRect.h - size; }
+        }
+        rect = { x, y, w, h };
+      }
+      clamp();
+      render();
+    }
+    function endDrag() { dragMode = null; }
+
+    box.addEventListener("pointerdown", (e) => { if (!e.target.classList.contains("crop-handle")) beginDrag("move", e); });
+    box.querySelectorAll(".crop-handle").forEach((h) => h.addEventListener("pointerdown", (e) => beginDrag(h.dataset.handle, e)));
+    stage.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+
+    return {
+      reset() {
+        rect = isCircular() ? { x: 25, y: 25, w: 50, h: 50 } : { x: 10, y: 10, w: 80, h: 80 };
+        render();
+      },
+      getPixelRect() {
+        const natW = icrState.bitmap ? icrState.bitmap.width : 0;
+        const natH = icrState.bitmap ? icrState.bitmap.height : 0;
+        return {
+          x: Math.round((rect.x / 100) * natW),
+          y: Math.round((rect.y / 100) * natH),
+          w: Math.max(1, Math.round((rect.w / 100) * natW)),
+          h: Math.max(1, Math.round((rect.h / 100) * natH)),
+        };
+      },
+    };
+  })();
+
+  function icrShowSection(name) { ["icrEmpty", "icrWorkspace", "icrResult"].forEach((id) => { $(id).hidden = (id !== name); }); }
+
+  function setImageCropMode(mode) {
+    const [title, sub] = ICR_MODE_TEXT[mode] || ICR_MODE_TEXT["image-crop"];
+    $("icrTitle").textContent = title;
+    $("icrSub").textContent = sub;
+    icrState.mode = mode;
+    $("cropBox").classList.toggle("circular", mode === "image-crop-circle");
+    if (icrState.previewUrl) { URL.revokeObjectURL(icrState.previewUrl); icrState.previewUrl = null; }
+    icrState.bitmap = null;
+    icrShowSection("icrEmpty");
+  }
+
+  async function icrIngestFile(file) {
+    const buf = await file.arrayBuffer();
+    const sniffed = sniffImageType(new Uint8Array(buf.slice(0, 16)));
+    if (!sniffed || sniffed === "heic") { showToast("⚠️ JPG/PNG/WEBP/BMP hi chalega is tool mein."); return; }
+    try {
+      const blob = new Blob([buf], { type: IC_MIME[sniffed] });
+      const bitmap = await createImageBitmap(blob);
+      icrState.bitmap = bitmap; icrState.format = sniffed;
+      if (icrState.previewUrl) URL.revokeObjectURL(icrState.previewUrl);
+      const url = URL.createObjectURL(blob);
+      icrState.previewUrl = url;
+      const imgEl = $("cropImg");
+      await new Promise((resolve) => { imgEl.onload = resolve; imgEl.src = url; });
+      cropController.reset();
+      icrShowSection("icrWorkspace");
+    } catch (err) {
+      showToast("⚠️ Yeh image nahi khul payi" + (err && err.message ? ": " + err.message : "."));
+    }
+  }
+
+  async function icrApply() {
+    if (!icrState.bitmap) return;
+    const r = cropController.getPixelRect();
+    if (r.w < 1 || r.h < 1) { showToast("⚠️ Selection bahut chhoti hai."); return; }
+    try {
+      const circular = icrState.mode === "image-crop-circle";
+      const canvas = document.createElement("canvas");
+      canvas.width = r.w; canvas.height = r.h;
+      const ctx = canvas.getContext("2d");
+      if (circular) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(r.w / 2, r.h / 2, Math.min(r.w, r.h) / 2, 0, Math.PI * 2);
+        ctx.clip();
+      } else if (icrState.format !== "png" && icrState.format !== "webp") {
+        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, r.w, r.h);
+      }
+      ctx.drawImage(icrState.bitmap, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+      if (circular) ctx.restore();
+
+      const mime = circular ? "image/png" : (IC_MIME[icrState.format] || "image/jpeg");
+      const bytes = await canvasToBytes(canvas, mime, 0.95);
+      if (icrState.lastUrl) URL.revokeObjectURL(icrState.lastUrl);
+      const blob = new Blob([bytes], { type: mime });
+      const url = URL.createObjectURL(blob);
+      icrState.lastUrl = url;
+      const ext = circular ? "png" : (icrState.format === "jpeg" ? "jpg" : icrState.format);
+      $("icrDownloadBtn").href = url;
+      $("icrDownloadBtn").download = `cropped.${ext}`;
+      $("icrResultPreview").src = url;
+      $("icrResultStats").innerHTML = `${r.w} × ${r.h}px · <strong>${formatBytes(bytes.length)}</strong>`;
+      icrShowSection("icrResult");
+    } catch (err) {
+      showToast("⚠️ Crop karte waqt kuch galat ho gaya" + (err && err.message ? ": " + err.message : "") + ".");
+    }
+  }
+
+  $("icrDropzone").addEventListener("click", () => $("icrFileInput").click());
+  $("icrDropzone").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("icrFileInput").click(); } });
+  ["dragenter", "dragover"].forEach((evt) => $("icrDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("icrDropzone").classList.add("drag-over"); }));
+  ["dragleave", "drop"].forEach((evt) => $("icrDropzone").addEventListener(evt, (e) => { e.preventDefault(); $("icrDropzone").classList.remove("drag-over"); }));
+  $("icrDropzone").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) icrIngestFile(e.dataTransfer.files[0]); });
+  $("icrFileInput").addEventListener("change", () => { const f = $("icrFileInput").files[0]; $("icrFileInput").value = ""; if (f) icrIngestFile(f); });
+  $("icrApplyBtn").addEventListener("click", icrApply);
+  function icrReset() { setImageCropMode(icrState.mode); }
+  $("icrStartOverBtn").addEventListener("click", icrReset);
+  $("icrStartOverBtn2").addEventListener("click", icrReset);
+
   // ---- tool menu routing (final) --------------------------------------------------------
   const TOOL_APP_ROUTES = {
     "split-pdf": ["pageEditor", "split"],
@@ -3573,6 +3821,8 @@
     "barcode-generator": ["barcodeGen"],
     "color-extractor": ["colorExtract"],
     "image-to-color": ["colorExtract"],
+    "image-crop": ["imageCrop", "image-crop"],
+    "image-crop-circle": ["imageCrop", "image-crop-circle"],
   };
 
   function activateTool(toolId) {
@@ -3587,6 +3837,7 @@
       if (appName === "pageEditor") setPageEditorMode(mode);
       if (appName === "passwordGen") pgGenerate();
       if (appName === "imageCompress") setImageCompressMode(mode);
+      if (appName === "imageCrop") setImageCropMode(mode);
     } else {
       showToast("🚧 Yeh tool jald aayega. Abhi try karo: Merge PDF, Split PDF, PDF to JPG, ya Password Generator.");
     }
